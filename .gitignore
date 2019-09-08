@@ -15,7 +15,7 @@ ipch/
 *.o
 *.obj
 *.suo
-*.db
+*.enc
 
 # Precompiled Headers
 *.gch

@@ -1,2 +1,3 @@
 ﻿  LexicalScanner.cpp
+C:\Users\swree\source\repos\LexicalScanner\LexicalScanner\LexicalScanner\LexicalScanner.cpp(43,20) : warning C4018: '<': signed/unsigned mismatch
   LexicalScanner.vcxproj -> C:\Users\swree\source\repos\LexicalScanner\LexicalScanner\Debug\LexicalScanner.exe
