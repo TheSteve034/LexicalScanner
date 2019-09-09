@@ -12,6 +12,27 @@ std::vector<std::string> getTokens(std::string filePath) {
 		std::string token = "";
 		int lineLength = line.length();
 		for (int i = 0; i < lineLength; i++) {
+			if (token == "//") {
+				for (int j = i; j < lineLength; j++) {
+					token += line[j];
+				}
+				tokens.push_back(token);
+				break;
+			}
+			if (token == "/*") {
+				tokens.push_back(token);
+				token = line[i];
+				continue;
+			}
+			if (line[i] == '*' && line[i + 1] == '/') {
+				tokens.push_back(token);
+				token = line[i];
+				continue;
+			}
+			if (token == "*/") {
+				tokens.push_back(token);
+				token = "";
+			}
 			if (i + 1 == lineLength) {
 				token += line[i];
 				tokens.push_back(token);
