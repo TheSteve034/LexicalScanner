@@ -8,13 +8,26 @@
 class scanner {
 	
 private:
-	const std::string reservedWord[25] = { "and", "array", "begin", "case",
-	"default", "do", "else", "end", "if", "not", "of", "or", "procedure",
-	"program", "read", "switch", "then", "var", "while", "write", "int",
-	"string", "boolean", "true", "false" };
+	//const arrays used to define the reserved words and special characters
+	const std::string reservedWords[25] = { "AND", "ARRAY", "BEGIN", "CASE",
+	"DEFAULT", "DO", "ELSE", "END", "IF", "NOT", "OF", "OR", "PROCEDURE",
+	"PROGRAM", "READ", "SWITCH", "THEN", "VAR", "WHILE", "WRITE", "INT",
+	"STRING", "BOOLEAN", "TRUE", "FALSE" };
 
 	const std::string specialSymbols[22] = { "+", "-", "*", "=", "<>", "<",
 	">", "<=", ">=", "(", ")", "[", "]", ":=", ".", ",", ";", ":", "..", "'",
 	"\"", "/" };
+
+	//functions to identify parts of the grammar
+	bool isReserved(std::string token);
+	bool isSingelLineComment(std::string token);
+	bool isSpecial(std::string token);
+	bool isConst(std::string token);
+	bool isId(std::string token);
+
+	std::string toCaps(std::string token);
+
+public:
+	void scan(std::vector<std::string> tokens);
 
 };
