@@ -11,16 +11,48 @@ std::vector<std::string> getTokens(std::string filePath) {
 
 	while (std::getline(file, line)) {
 		std::string token = "";
+		bool inStringConst = false;
 		int lineLength = line.length();
 		for (int i = 0; i < lineLength; i++) {
-			if (line[i] == '*' && line[i + 1] == '/') {
-				tokens.push_back(token);
-				token = line[i];
-				continue;
+			if (line[i] == '/' && line[i + 1] == '*') {
+				if (token != "") {
+					tokens.push_back(token);
+					token = "";
+					token += line[i];
+					token += line[i + 1];
+					tokens.push_back(token);
+					i = i + 1;
+					break;
+				}
+				else if (token == "") {
+					tokens.push_back(token);
+					token = "";
+					token += line[i];
+					token += line[i + 1];
+					tokens.push_back(token);
+					i = i + 1;
+					break;
+				}
 			}
-			if (token == "*/") {
-				tokens.push_back(token);
-				token = "";
+			if (line[i] == '*' && line[i + 1] == '/') {
+				if (token != "") {
+					tokens.push_back(token);
+					token = "";
+					token += line[i];
+					token += line[i + 1];
+					tokens.push_back(token);
+					i = i + 1;
+					break;
+				}
+				else if (token == "") {
+					tokens.push_back(token);
+					token = "";
+					token += line[i];
+					token += line[i + 1];
+					tokens.push_back(token);
+					i = i + 1;
+					break;
+				}
 			}
 			if (line[i] == '/' && line[i +1] == '/') {
 				if (token != "") {
@@ -30,7 +62,7 @@ std::vector<std::string> getTokens(std::string filePath) {
 						token += line[j];
 					}
 					tokens.push_back(token);
-					i = i + 2;
+					i = i + 1;
 					break;
 				}
 				else if (token == "") {
@@ -44,7 +76,7 @@ std::vector<std::string> getTokens(std::string filePath) {
 			}
 			if (line[i] == '+' || line[i] == '-' || line[i] == '*' || line[i] == '=' || line[i + 1] == '<' || line[i + 1] == '>'
 			|| line[i] == '(' || line[i] == ')' || line[i] == '[' || line[i] == ']' || line[i] == '.' || line[i] == ','
-			|| line[i] == ';' || line[i] == '\'' || line[i] == '\"' || line[i] == '/') {
+			|| line[i] == ';' || line[i] == '\'' || line[i] == '/') {
 				tokens.push_back(token);
 				token = line[i];
 				tokens.push_back(token);
@@ -70,6 +102,19 @@ std::vector<std::string> getTokens(std::string filePath) {
 				token += line[i];
 				tokens.push_back(token);
 			}
+			/*if (line[i] == '\"' && inStringConst == false) {
+				if (token != "") {
+					tokens.push_back(token);
+					token = line[i];
+					inStringConst = true;
+					continue;
+				}
+				else {
+					token = line[i];
+					inStringConst = true;
+					continue;
+				}
+			}*/
 			else if (line[i] == ' ' && line[i + 1] == ' ') {
 				if (i < lineLength) {
 					continue;

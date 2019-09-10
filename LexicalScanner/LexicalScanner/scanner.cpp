@@ -4,6 +4,8 @@
 
 std::regex idRE("[A-Z][A-Z 0-9 _]*");
 std::regex singelLineCommenetRE("\/\/.*");
+std::regex intConstantRE("[1-9][0-9]*");
+std::regex stringConstantRE("\"[A-Z]+\"");
 
 std::string scanner::toCaps(std::string token) {
 	std::string capString = "";
@@ -28,7 +30,24 @@ bool scanner::isReserved(std::string token) {
 
 bool scanner::isSingelLineComment(std::string token) {
 	if (std::regex_match(token, singelLineCommenetRE)) {
-		std::cout << "SINGLE LINE COMMENT\t" + token << std::endl;
+		return true;
+	}
+	else {
+		return false;
+	}
+}
+
+bool scanner::isMultiLineCommentStart(std::string token) {
+	if (token == "/*") {
+		return true;
+	}
+	else {
+		return false;
+	}
+}
+
+bool scanner::isMultiLineCommentEnd(std::string token) {
+	if (token == "*/") {
 		return true;
 	}
 	else {
@@ -48,6 +67,16 @@ bool scanner::isSpecial(std::string token) {
 	return isSpecial;
 }
 
+bool scanner::isIntConst(std::string token) {
+	if (std::regex_match(token, intConstantRE)) {
+		std::cout << "INTEGER CONSTANT\t" + token << std::endl;
+		return true;
+	}
+	else {
+		return false;
+	}
+}
+
 bool scanner::isId(std::string token) {
 	std::string capToken = toCaps(token);
 	if (std::regex_match(capToken, idRE)) {
@@ -61,13 +90,25 @@ bool scanner::isId(std::string token) {
 
 void scanner::scan(std::vector<std::string> tokens) {
 	bool lexemeFound = false;
+	bool inComment = false;
 	for (auto& token : tokens) {
 		if (isReserved(token)) {
 			lexemeFound = true;
 			continue;
 		}
 		if (isSingelLineComment(token)) {
-			lexemeFound = true;
+			lexemeFound = false;
+			continue;
+		}
+		if (isMultiLineCommentStart(token)) {
+			lexemeFound = false;
+			inComment = true;	
+		}
+		if (isMultiLineCommentEnd(token)) {
+			lexemeFound = false;
+			inComment = false;
+		}
+		if (inComment) {
 			continue;
 		}
 		if (isSpecial(token)) {
@@ -76,6 +117,10 @@ void scanner::scan(std::vector<std::string> tokens) {
 		}
 		if (isId(token)) {
 			lexemeFound = true;
+			continue;
+		}
+		if (isIntConst(token)) {
+			lexemeFound == true;
 			continue;
 		}
 	}
