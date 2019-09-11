@@ -3,6 +3,7 @@
 #include <string>
 #include <vector>
 #include <iostream>
+#include <fstream>
 #include <regex>
 
 class scanner {
@@ -31,6 +32,7 @@ private:
 	std::string toCaps(std::string token);
 
 public:
+	std::vector<std::string> getTokens(std::string filePath);
 	void scan(std::vector<std::string> tokens);
 
 };

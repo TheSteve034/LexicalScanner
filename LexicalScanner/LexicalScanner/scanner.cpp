@@ -7,6 +7,162 @@ std::regex singelLineCommenetRE("\/\/.*");
 std::regex intConstantRE("[1-9][0-9]*");
 std::regex stringConstantRE("\"[A-Z]+\"");
 
+std::vector<std::string> scanner::getTokens(std::string filePath) {
+	std::ifstream file(filePath.c_str(), std::ifstream::in);
+	std::string line = "";
+	std::vector<std::string> tokens = {};
+
+	while (std::getline(file, line)) {
+		std::string token = "";
+		bool inStringConst = false;
+		int lineLength = line.length();
+		for (int i = 0; i < lineLength; i++) {
+			if (line[i] == '/' && line[i + 1] == '*') {
+				if (token != "") {
+					tokens.push_back(token);
+					token = "";
+					token += line[i];
+					token += line[i + 1];
+					tokens.push_back(token);
+					i = i + 1;
+					break;
+				}
+				else if (token == "") {
+					tokens.push_back(token);
+					token = "";
+					token += line[i];
+					token += line[i + 1];
+					tokens.push_back(token);
+					i = i + 1;
+					break;
+				}
+			}
+			if (line[i] == '*' && line[i + 1] == '/') {
+				if (token != "") {
+					tokens.push_back(token);
+					token = "";
+					token += line[i];
+					token += line[i + 1];
+					tokens.push_back(token);
+					i = i + 1;
+					break;
+				}
+				else if (token == "") {
+					tokens.push_back(token);
+					token = "";
+					token += line[i];
+					token += line[i + 1];
+					tokens.push_back(token);
+					i = i + 1;
+					break;
+				}
+			}
+			if (line[i] == '/' && line[i + 1] == '/') {
+				if (token != "") {
+					tokens.push_back(token);
+					token = "";
+					for (int j = i; j < lineLength; j++) {
+						token += line[j];
+					}
+					tokens.push_back(token);
+					i = i + 1;
+					break;
+				}
+				else if (token == "") {
+					for (int j = i; j < lineLength; j++) {
+						token += line[j];
+					}
+					tokens.push_back(token);
+					i = i + 1;
+					break;
+				}
+			}
+			if (line[i] == '+' || line[i] == '-' || line[i] == '*' || line[i] == '=' || line[i + 1] == '<' || line[i + 1] == '>'
+				|| line[i] == '(' || line[i] == ')' || line[i] == '[' || line[i] == ']' || line[i] == '.' || line[i] == ','
+				|| line[i] == ';' || line[i] == '\'' || line[i] == '/') {
+				tokens.push_back(token);
+				token = line[i];
+				tokens.push_back(token);
+				token = "";
+				continue;
+			}
+			else if ((line[i] == '<' && line[i + 1] == '>') || (line[i] == '<' && line[i + 1] == '=') || (line[i] == '>' && line[i + 1] == '=')
+				|| (line[i] == ':' && line[i + 1] == '=') || (line[i] == '.' && line[i + 1] == '.')) {
+				tokens.push_back(token);
+				token = line[i];
+				token += line[i + 1];
+				tokens.push_back(token);
+				token = "";
+				i = i + 1;
+				continue;
+			}
+			if (token == "/*") {
+				tokens.push_back(token);
+				token = line[i];
+				continue;
+			}
+			if (i + 1 == lineLength) {
+				token += line[i];
+				tokens.push_back(token);
+			}
+			if (line[i] == '\"' && inStringConst == false) {
+				if (token != "") {
+					tokens.push_back(token);
+					token = line[i];
+				}
+				else {
+					token = line[i];
+					inStringConst = true;
+				}
+				inStringConst = true;
+				continue;
+			}
+			if (inStringConst == true && line[i + 1] != '\"') {
+				token += line[i];
+				continue;
+			}
+			if (inStringConst == true && line[i + 1] == '\"') {
+				token += line[i];
+				token += line[i + 1];
+				tokens.push_back(token);
+				token = "";
+				i = i + 1;
+				continue;
+			}
+			else if (line[i] == ' ' && line[i + 1] == ' ') {
+				if (i < lineLength) {
+					continue;
+				}
+				else if (token == "") {
+					continue;
+				}
+			}
+			else if (line[i] == '\t') {
+				continue;
+			}
+			else if (line[i] == ' ' && line[i + 1] != ' ') {
+				tokens.push_back(token);
+				token = "";
+				continue;
+			}
+			else if (line[i] != ' ' && line[i + 1] != ' ') {
+				token += line[i];
+			}
+			else if (line[i] != ' ' && line[i + 1] == ' ') {
+				token += line[i];
+			}
+		}
+	}
+	for (int i = 0; i < tokens.size(); i++) {
+		if (tokens[i] == "") {
+			tokens.erase(tokens.begin() + i);
+		}
+	}
+
+	return tokens;
+}
+
+
 std::string scanner::toCaps(std::string token) {
 	std::string capString = "";
 	for (int i = 0; i < token.size(); i++) {
@@ -67,6 +223,17 @@ bool scanner::isSpecial(std::string token) {
 	return isSpecial;
 }
 
+bool scanner::isStringConst(std::string token) {
+	std::string capToken = toCaps(token);
+	if (std::regex_match(capToken, stringConstantRE)) {
+		std::cout << "STRING CONSTANT\t" + capToken << std::endl;
+		return true;
+	}
+	else {
+		return false;
+	}
+}
+
 bool scanner::isIntConst(std::string token) {
 	if (std::regex_match(token, intConstantRE)) {
 		std::cout << "INTEGER CONSTANT\t" + token << std::endl;
@@ -107,6 +274,7 @@ void scanner::scan(std::vector<std::string> tokens) {
 		if (isMultiLineCommentEnd(token)) {
 			lexemeFound = false;
 			inComment = false;
+			continue;
 		}
 		if (inComment) {
 			continue;
@@ -122,6 +290,14 @@ void scanner::scan(std::vector<std::string> tokens) {
 		if (isIntConst(token)) {
 			lexemeFound == true;
 			continue;
+		}
+		if (isStringConst(token)) {
+			lexemeFound == true;
+			continue;
+		}
+		lexemeFound = false;
+		if (lexemeFound == false) {
+			std::cout << "ILLEGAL TOKEN\t" + token << std::endl;
 		}
 	}
 }
