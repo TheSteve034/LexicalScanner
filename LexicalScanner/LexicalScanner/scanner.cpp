@@ -235,6 +235,10 @@ bool scanner::isStringConst(std::string token) {
 }
 
 bool scanner::isIntConst(std::string token) {
+	if (token == "0") {
+		std::cout << "INTEGER CONSTANT\t" + token << std::endl;
+		return true;
+	}
 	if (std::regex_match(token, intConstantRE)) {
 		std::cout << "INTEGER CONSTANT\t" + token << std::endl;
 		return true;

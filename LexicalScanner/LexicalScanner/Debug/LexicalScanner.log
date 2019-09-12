@@ -1,9 +1,7 @@
-﻿  LexicalScanner.cpp
-  scanner.cpp
+﻿  scanner.cpp
 C:\Users\swree\source\repos\LexicalScanner\LexicalScanner\LexicalScanner\scanner.cpp(6,33) : warning C4129: '/': unrecognized character escape sequence
 C:\Users\swree\source\repos\LexicalScanner\LexicalScanner\LexicalScanner\scanner.cpp(156,20) : warning C4018: '<': signed/unsigned mismatch
 C:\Users\swree\source\repos\LexicalScanner\LexicalScanner\LexicalScanner\scanner.cpp(168,20) : warning C4018: '<': signed/unsigned mismatch
-C:\Users\swree\source\repos\LexicalScanner\LexicalScanner\LexicalScanner\scanner.cpp(291,16) : warning C4553: '==': result of expression not used; did you intend '='?
-  Generating Code...
 C:\Users\swree\source\repos\LexicalScanner\LexicalScanner\LexicalScanner\scanner.cpp(295,16) : warning C4553: '==': result of expression not used; did you intend '='?
+C:\Users\swree\source\repos\LexicalScanner\LexicalScanner\LexicalScanner\scanner.cpp(299,16) : warning C4553: '==': result of expression not used; did you intend '='?
   LexicalScanner.vcxproj -> C:\Users\swree\source\repos\LexicalScanner\LexicalScanner\Debug\LexicalScanner.exe
