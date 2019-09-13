@@ -5,7 +5,8 @@
 std::regex idRE("[A-Z][A-Z 0-9 _]*");
 std::regex singelLineCommenetRE("\/\/.*");
 std::regex intConstantRE("[1-9][0-9]*");
-std::regex stringConstantRE("\"[A-Z]+\"");
+std::regex stringConstantRE("\"[A-Z ]*\"");
+std::regex missingEndQuote("\"[A-Z ]*");
 
 std::vector<std::string> scanner::getTokens(std::string filePath) {
 	std::ifstream file(filePath.c_str(), std::ifstream::in);
@@ -234,6 +235,25 @@ bool scanner::isStringConst(std::string token) {
 	}
 }
 
+bool scanner::isStringConstStart(std::string token) {
+	std::string captoken = toCaps(token);
+	if (std::regex_match(captoken, missingEndQuote)) {
+		return true;
+	}
+	else {
+		return false;
+	}
+}
+
+bool scanner::isStringContEnd(std::string token) {
+	if (token == "\"") {
+		return true;
+	}
+	else {
+		return false;
+	}
+}
+
 bool scanner::isIntConst(std::string token) {
 	if (token == "0") {
 		std::cout << "INTEGER CONSTANT\t" + token << std::endl;
@@ -262,7 +282,9 @@ bool scanner::isId(std::string token) {
 void scanner::scan(std::vector<std::string> tokens) {
 	bool lexemeFound = false;
 	bool inComment = false;
+	bool inStringConst = false;
 	for (auto& token : tokens) {
+		std::string tempStringConst = "";
 		if (isReserved(token)) {
 			lexemeFound = true;
 			continue;
@@ -303,5 +325,10 @@ void scanner::scan(std::vector<std::string> tokens) {
 		if (lexemeFound == false) {
 			std::cout << "ILLEGAL TOKEN\t" + token << std::endl;
 		}
+	}
+
+	std::cout << "\n\n" << std::endl;
+	for (auto& token : tokens) {
+		std::cout << token << std::endl;
 	}
 }

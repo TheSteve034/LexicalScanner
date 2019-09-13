@@ -26,6 +26,8 @@ private:
 	bool isMultiLineCommentEnd(std::string token);
 	bool isSpecial(std::string token);
 	bool isStringConst(std::string token);
+	bool isStringConstStart(std::string token);
+	bool isStringContEnd(std::string token);
 	bool isIntConst(std::string token);
 	bool isId(std::string token);
 
