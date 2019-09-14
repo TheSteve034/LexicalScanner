@@ -72,10 +72,10 @@ std::vector<std::string> scanner::getTokens(std::string filePath) {
 				}
 			}
 
-			//check for all on char special tokens. These tokens as defined by the grammar.
-			if (line[i] == '+' || line[i] == '-' || line[i] == '*' || line[i] == '=' || line[i + 1] == '<' || line[i + 1] == '>'
+			//check for all one char special tokens. These tokens are defined by the grammar.
+			if (line[i] == '+' || line[i] == '-' || line[i] == '*' || line[i] == '=' || line[i] == '<' || line[i] == '>'
 				|| line[i] == '(' || line[i] == ')' || line[i] == '[' || line[i] == ']' || line[i] == '.' || line[i] == ','
-				|| line[i] == ';' || line[i] == '\'' || line[i] == '/' || line[i] == ':') {
+				|| line[i] == ';' || line[i] == '\'' || line[i] == '/' || line[i] == ':'|| line[i] == '\"') {
 				if (token.empty()) {
 					token = line[i];
 					tokens.push_back(token);
@@ -92,18 +92,19 @@ std::vector<std::string> scanner::getTokens(std::string filePath) {
 			}
 
 			/*
-			now all remaning chars will be processed as follows:
-			if char is not white space and the next char is also not white space add char to token.
+			Remaining chars that are not caught will be processed as follows
+			if a char no white space it will be added to the token
 
-			if char is not white space and the nexr char is white space add char to the token and push
-			the token into token. Then set token to empty
-
-			if char is white space skip it
+			if char is white then the token will be checked. If it is not empty then the token will be pushed into
+			tokens. This implies that we were just recording a token and have hit white space. In this case the token
+			will be set to empty. If the token is empty then we skip the white space char.
 			*/
+			//testing for non white space chars
 			if (line[i] != ' ' && line[i] != '\t') {
 				token += line[i];
 				continue;
 			}
+			//testing for white space chars.
 			if (line[i] == ' ' || line[i] == '\t') {
 				if (token.empty()) {
 					continue;
@@ -116,7 +117,26 @@ std::vector<std::string> scanner::getTokens(std::string filePath) {
 			}
 
 		}
+		//before the next line is consumed a check is made to see if token is empty
+		//if its not then it is added to tokens. Then an _EOL token is added to denote
+		//that all the tokens before it are on the same line. The _EOL token is an illegal
+		//symbol is the grammar so the scanner can assume that is the end of line. If a user 
+		//tries to define this symbol it will cause a complie error. If token is empty then
+		//just an EOL char is added.
+		if (token.empty()) {
+			token = "_EOL";
+			tokens.push_back(token);
+		}
+		else if (!token.empty()) {
+			tokens.push_back(token);
+			token = "_EOL";
+			tokens.push_back(token);
+		}
 	}
+	/*Finally, when the while loop ends we have consumed the whole file an _EOF will be added to
+	the tokens list to indicate the the entire file has been tokenized.*/
+	std::string endToken = "_EOF";
+	tokens.push_back(endToken);
 	return tokens;
 }
 
