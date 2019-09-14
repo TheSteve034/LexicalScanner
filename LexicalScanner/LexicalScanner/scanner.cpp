@@ -5,8 +5,8 @@
 std::regex idRE("[A-Z][A-Z 0-9 _]*");
 std::regex singelLineCommenetRE("\/\/.*");
 std::regex intConstantRE("[1-9][0-9]*");
-std::regex stringConstantRE("\"[A-Z ]*\"");
-std::regex missingEndQuote("\"[A-Z ]*");
+std::regex stringConstantRE("\".*\"");
+std::regex missingEndQuote("\"[A-Z ]+");
 
 std::vector<std::string> scanner::getTokens(std::string filePath) {
 	std::ifstream file(filePath.c_str(), std::ifstream::in);
@@ -18,118 +18,68 @@ std::vector<std::string> scanner::getTokens(std::string filePath) {
 		bool inStringConst = false;
 		int lineLength = line.length();
 		for (int i = 0; i < lineLength; i++) {
+			//Checks for all two character tokens. In the case of a two char token a token will be made of the currently
+			//checked char and the next and the loop variable will be incremented. Two char tokens are defined as special 
+			//symbols. This section will also test for symbols that start coments. This will be tracked so that the scanner 
+			//method can discard them.
+
+			//tests for the "/*" token
 			if (line[i] == '/' && line[i + 1] == '*') {
-				if (token != "") {
-					tokens.push_back(token);
-					token = "";
-					token += line[i];
-					token += line[i + 1];
-					tokens.push_back(token);
-					i = i + 1;
-					break;
-				}
-				else if (token == "") {
-					tokens.push_back(token);
-					token = "";
-					token += line[i];
-					token += line[i + 1];
-					tokens.push_back(token);
-					i = i + 1;
-					break;
-				}
+				token = line[i];
+				token += line[i + 1];
+				tokens.push_back(token);
+				token = "";
+				i = i + 1;
+				continue;
 			}
+			//tests for the "*/" token
 			if (line[i] == '*' && line[i + 1] == '/') {
-				if (token != "") {
-					tokens.push_back(token);
-					token = "";
-					token += line[i];
-					token += line[i + 1];
-					tokens.push_back(token);
-					i = i + 1;
-					break;
-				}
-				else if (token == "") {
-					tokens.push_back(token);
-					token = "";
-					token += line[i];
-					token += line[i + 1];
-					tokens.push_back(token);
-					i = i + 1;
-					break;
-				}
+				token = line[i];
+				token += line[i + 1];
+				tokens.push_back(token);
+				token = "";
+				i = i + 1;
+				continue;
 			}
+			//tests fot he "//" token
 			if (line[i] == '/' && line[i + 1] == '/') {
-				if (token != "") {
-					tokens.push_back(token);
-					token = "";
-					for (int j = i; j < lineLength; j++) {
-						token += line[j];
-					}
-					tokens.push_back(token);
-					i = i + 1;
-					break;
-				}
-				else if (token == "") {
-					for (int j = i; j < lineLength; j++) {
-						token += line[j];
-					}
-					tokens.push_back(token);
-					i = i + 1;
-					break;
-				}
+				token = line[i];
+				token += line[i + 1];
+				tokens.push_back(token);
+				token = "";
+				i = i + 1;
+				continue;
 			}
+			//tests for all special two char tokens as decribed by the grammar
+			if ((line[i] == '<' && line[i + 1] == '>') || (line[i] == '<' && line[i + 1] == '=') || (line[i] == '>' && line[i + 1] == '=')
+				|| (line[i] == ':' && line[i + 1] == '=') || (line[i] == '.' && line[i + 1] == '.')) {
+				token = line[i];
+				token += line[i + 1];
+				tokens.push_back(token);
+				token = "";
+				i = i + 1;
+				continue;
+			}
+
+			//check for all on char special tokens. These tokens as defined by the grammar.
 			if (line[i] == '+' || line[i] == '-' || line[i] == '*' || line[i] == '=' || line[i + 1] == '<' || line[i + 1] == '>'
 				|| line[i] == '(' || line[i] == ')' || line[i] == '[' || line[i] == ']' || line[i] == '.' || line[i] == ','
-				|| line[i] == ';' || line[i] == '\'' || line[i] == '/') {
-				tokens.push_back(token);
+				|| line[i] == ';' || line[i] == '\'' || line[i] == '/' || line[i] == ':') {
 				token = line[i];
 				tokens.push_back(token);
 				token = "";
 				continue;
 			}
-			else if ((line[i] == '<' && line[i + 1] == '>') || (line[i] == '<' && line[i + 1] == '=') || (line[i] == '>' && line[i + 1] == '=')
-				|| (line[i] == ':' && line[i + 1] == '=') || (line[i] == '.' && line[i + 1] == '.')) {
-				tokens.push_back(token);
-				token = line[i];
-				token += line[i + 1];
-				tokens.push_back(token);
-				token = "";
-				i = i + 1;
-				continue;
-			}
-			if (token == "/*") {
-				tokens.push_back(token);
-				token = line[i];
-				continue;
-			}
-			if (i + 1 == lineLength) {
-				token += line[i];
-				tokens.push_back(token);
-			}
-			if (line[i] == '\"' && inStringConst == false) {
-				if (token != "") {
-					tokens.push_back(token);
-					token = line[i];
-				}
-				else {
-					token = line[i];
-					inStringConst = true;
-				}
-				inStringConst = true;
-				continue;
-			}
-			if (inStringConst == true && line[i + 1] != '\"') {
-				token += line[i];
-				continue;
-			}
-			if (inStringConst == true && line[i + 1] == '\"') {
-				token += line[i];
-				token += line[i + 1];
-				tokens.push_back(token);
-				token = "";
-				i = i + 1;
-				continue;
-			}
+
+			/*
+			now all remaning chars will be processed as follows:
+			if char is not white space and the next char is also not white space add char to token.
+
+			if char is not white space and the nexr char is white space add char to the token and push
+			the token into token. Then set token to empty
+
+			if char is white space skip it
+			*/
 			else if (line[i] == ' ' && line[i + 1] == ' ') {
 				if (i < lineLength) {
 					continue;
@@ -149,17 +99,12 @@ std::vector<std::string> scanner::getTokens(std::string filePath) {
 			else if (line[i] != ' ' && line[i + 1] != ' ') {
 				token += line[i];
 			}
-			else if (line[i] != ' ' && line[i + 1] == ' ') {
+			else if ((line[i] != ' ' && line[i + 1] == ' ') && i + 1 != lineLength) {
 				token += line[i];
 			}
-		}
-	}
-	for (int i = 0; i < tokens.size(); i++) {
-		if (tokens[i] == "") {
-			tokens.erase(tokens.begin() + i);
-		}
-	}
 
+		}
+	}
 	return tokens;
 }
 
@@ -236,8 +181,7 @@ bool scanner::isStringConst(std::string token) {
 }
 
 bool scanner::isStringConstStart(std::string token) {
-	std::string captoken = toCaps(token);
-	if (std::regex_match(captoken, missingEndQuote)) {
+	if (token == "\"") {
 		return true;
 	}
 	else {
@@ -283,13 +227,9 @@ void scanner::scan(std::vector<std::string> tokens) {
 	bool lexemeFound = false;
 	bool inComment = false;
 	bool inStringConst = false;
-	for (auto& token : tokens) {
-		std::string tempStringConst = "";
-		if (isReserved(token)) {
-			lexemeFound = true;
-			continue;
-		}
-		if (isSingelLineComment(token)) {
+	std::string tempStringConst = "";
+	/*for (auto& token : tokens) {
+		if (isSingelLineComment(token) && (inComment == false && inStringConst == false)) {
 			lexemeFound = false;
 			continue;
 		}
@@ -302,7 +242,40 @@ void scanner::scan(std::vector<std::string> tokens) {
 			inComment = false;
 			continue;
 		}
+		if (isStringConstStart(token) && inStringConst == false) {
+			inStringConst = true;
+			tempStringConst += token;
+			continue;
+		}
+		if (isStringContEnd(token) && inStringConst == true) {
+			inStringConst = false;
+			tempStringConst += token;
+			isStringConst(tempStringConst);
+			tempStringConst = "";
+			continue;
+		}
+		if (inStringConst) {
+			std::regex numORChar("[A-Z0-9]*");
+			std::string capToken = toCaps(token);
+			if (std::regex_match(capToken, numORChar)) {
+				if (tempStringConst == "\"") {
+					tempStringConst += capToken;
+				}
+				else {
+					tempStringConst += " ";
+					tempStringConst += capToken;
+				}
+			}
+			else {
+				tempStringConst += capToken;
+			}
+			continue;
+		}
 		if (inComment) {
+			continue;
+		}
+		if (isReserved(token) && (inComment == false && inStringConst == false)) {
+			lexemeFound = true;
 			continue;
 		}
 		if (isSpecial(token)) {
@@ -321,13 +294,16 @@ void scanner::scan(std::vector<std::string> tokens) {
 			lexemeFound == true;
 			continue;
 		}
+		if (inStringConst == true || inComment == true) {
+			lexemeFound = false;
+		}
 		lexemeFound = false;
 		if (lexemeFound == false) {
 			std::cout << "ILLEGAL TOKEN\t" + token << std::endl;
 		}
-	}
+	}*/
 
-	std::cout << "\n\n" << std::endl;
+	std::cout << "Tokens" << std::endl;
 	for (auto& token : tokens) {
 		std::cout << token << std::endl;
 	}
