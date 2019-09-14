@@ -360,6 +360,19 @@ void scanner::scan(std::vector<std::string> tokens) {
 			tempStringConst = "";
 			continue;
 		}
+
+		//handle single line comment
+		if (tokens[i] == "//" ) {
+			inComment == true;
+			continue;
+		}
+		if (inComment == true && tokens[i] != "_EOF") {
+			continue;
+		}
+		if (inComment == true && tokens[i] == "_EOF") {
+			inComment = false;
+			continue;
+		}
 	}
 
 	std::cout << "\nTokens\n" << std::endl;
