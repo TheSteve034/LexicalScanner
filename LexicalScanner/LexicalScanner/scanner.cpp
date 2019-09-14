@@ -5,8 +5,6 @@
 std::regex idRE("[A-Z][A-Z 0-9 _]*");
 std::regex singelLineCommenetRE("\/\/.*");
 std::regex intConstantRE("[1-9][0-9]*");
-std::regex stringConstantRE("\".*\"");
-std::regex missingEndQuote("\"[A-Z ]+");
 
 std::vector<std::string> scanner::getTokens(std::string filePath) {
 	std::ifstream file(filePath.c_str(), std::ifstream::in);
@@ -162,32 +160,32 @@ bool scanner::isReserved(std::string token) {
 	return isReserved;
 }
 
-bool scanner::isSingelLineComment(std::string token) {
-	if (std::regex_match(token, singelLineCommenetRE)) {
-		return true;
-	}
-	else {
-		return false;
-	}
-}
-
-bool scanner::isMultiLineCommentStart(std::string token) {
-	if (token == "/*") {
-		return true;
-	}
-	else {
-		return false;
-	}
-}
-
-bool scanner::isMultiLineCommentEnd(std::string token) {
-	if (token == "*/") {
-		return true;
-	}
-	else {
-		return false;
-	}
-}
+//bool scanner::isSingelLineComment(std::string token) {
+//	if (std::regex_match(token, singelLineCommenetRE)) {
+//		return true;
+//	}
+//	else {
+//		return false;
+//	}
+//}
+//
+//bool scanner::isMultiLineCommentStart(std::string token) {
+//	if (token == "/*") {
+//		return true;
+//	}
+//	else {
+//		return false;
+//	}
+//}
+//
+//bool scanner::isMultiLineCommentEnd(std::string token) {
+//	if (token == "*/") {
+//		return true;
+//	}
+//	else {
+//		return false;
+//	}
+//}
 
 bool scanner::isSpecial(std::string token) {
 	bool isSpecial = false;
@@ -201,34 +199,34 @@ bool scanner::isSpecial(std::string token) {
 	return isSpecial;
 }
 
-bool scanner::isStringConst(std::string token) {
-	std::string capToken = toCaps(token);
-	if (std::regex_match(capToken, stringConstantRE)) {
-		std::cout << "STRING CONSTANT\t" + capToken << std::endl;
-		return true;
-	}
-	else {
-		return false;
-	}
-}
-
-bool scanner::isStringConstStart(std::string token) {
-	if (token == "\"") {
-		return true;
-	}
-	else {
-		return false;
-	}
-}
-
-bool scanner::isStringContEnd(std::string token) {
-	if (token == "\"") {
-		return true;
-	}
-	else {
-		return false;
-	}
-}
+//bool scanner::isStringConst(std::string token) {
+//	std::string capToken = toCaps(token);
+//	if (std::regex_match(capToken, stringConstantRE)) {
+//		std::cout << "STRING CONSTANT\t" + capToken << std::endl;
+//		return true;
+//	}
+//	else {
+//		return false;
+//	}
+//}
+//
+//bool scanner::isStringConstStart(std::string token) {
+//	if (token == "\"") {
+//		return true;
+//	}
+//	else {
+//		return false;
+//	}
+//}
+//
+//bool scanner::isStringContEnd(std::string token) {
+//	if (token == "\"") {
+//		return true;
+//	}
+//	else {
+//		return false;
+//	}
+//}
 
 bool scanner::isIntConst(std::string token) {
 	if (token == "0") {
@@ -286,10 +284,11 @@ The scaner works as follows:
 	it will report the commnet as an illegal token.
 4 - the scanner will next look for the // token. This will imply a single line comment. The scanner will ignore
 	all tokens after this until it finds an _EOL or _EOF.
-5 - the scanner will now test to see if a token is an identifier
+5 - the scanner will now test to see if a token is a reserved word
 6 - the scanner will now test to see if a token is a special symbol
-7 - the scanner will now tets to see if a token is a reserved word
-8 - if the token is not identified in any of the previous steps the scanner will report it as an illegal token.
+7 - the scanner will now tets to see if a token is an inter constant
+8 - the scanner will now tets to see if a token is an identifier
+9 - if the token is not identified in any of the previous steps the scanner will report it as an illegal token.
 
 the scanner should never report out _EOL or _EOF these are being used a special tokens and they are also illegal in
 in the grammar. If the user atempts to use it as an intetifier it will either produce an illegal token or a malformed line
@@ -364,13 +363,13 @@ void scanner::scan(std::vector<std::string> tokens) {
 
 		//handle single line comment
 		if (tokens[i] == "//" ) {
-			inComment == true;
+			inComment = true;
 			continue;
 		}
-		if (inComment == true && tokens[i] != "_EOF") {
+		if (inComment == true && tokens[i] != "_EOL") {
 			continue;
 		}
-		if (inComment == true && tokens[i] == "_EOF") {
+		if (inComment == true && tokens[i] == "_EOL") {
 			inComment = false;
 			continue;
 		}
@@ -379,21 +378,46 @@ void scanner::scan(std::vector<std::string> tokens) {
 		if (tokens[i] == "/*") {
 			inMultiLineComment = true;
 		}
-		if (inMultiLineComment = true && (tokens[i] != "_EOF" && tokens[i] != "*/")) {
+		if (inMultiLineComment == true && (tokens[i] != "_EOF" && tokens[i] != "*/")) {
 			continue;
 		}
-		if (inMultiLineComment = true && tokens[i] == "_EOF") {
+		if (inMultiLineComment == true && tokens[i] == "_EOF") {
 			std::cout << "ILLEGAL TOKEN\tUnbounded multiline comment found at end of file" << std::endl;
 			break;
 		}
-		if (inMultiLineComment = true && tokens[i] == "*/") {
+		if (inMultiLineComment == true && tokens[i] == "*/") {
 			inMultiLineComment = false;
 			continue;
 		}
+
+		//test if a token is a reserved word
+		if (isReserved(tokens[i])) {
+			continue;
+		}
+
+		//test if a token is a special character
+		if (isSpecial(tokens[i])) {
+			continue;
+		}
+
+		//test if a token is an int const
+		if (isIntConst(tokens[i])) {
+			continue;
+		}
+
+		//tests if a token is an identifier
+		if (isId(tokens[i])) {
+			continue;
+		}
+
+		//token is now considered an illegal token
+		if (tokens[i] != "_EOL" && tokens[i] != "_EOF") {
+			std::cout << "ILLEGAL TOKEN\t" + tokens[i] << std::endl;
+		}
 	}
 
-	std::cout << "\nTokens\n" << std::endl;
+	/*std::cout << "\nTokens\n" << std::endl;
 	for (auto& token : tokens) {
 		std::cout << token << std::endl;
-	}
+	}*/
 }

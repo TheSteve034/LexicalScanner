@@ -21,13 +21,13 @@ private:
 
 	//functions to identify parts of the grammar
 	bool isReserved(std::string token);
-	bool isSingelLineComment(std::string token);
-	bool isMultiLineCommentStart(std::string token);
-	bool isMultiLineCommentEnd(std::string token);
+	//bool isSingelLineComment(std::string token);
+	//bool isMultiLineCommentStart(std::string token);
+	//bool isMultiLineCommentEnd(std::string token);
 	bool isSpecial(std::string token);
-	bool isStringConst(std::string token);
-	bool isStringConstStart(std::string token);
-	bool isStringContEnd(std::string token);
+	//bool isStringConst(std::string token);
+	//bool isStringConstStart(std::string token);
+	//bool isStringContEnd(std::string token);
 	bool isIntConst(std::string token);
 	bool isId(std::string token);
 	bool isEOF(std::string token);
