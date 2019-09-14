@@ -298,6 +298,7 @@ that will be caught by the parser.
 void scanner::scan(std::vector<std::string> tokens) {
 	bool lexemeFound = false;
 	bool inComment = false;
+	bool inMultiLineComment = false;
 	bool inStringConst = false;
 	std::string tempStringConst = "";
 	for (int i = 0; i < tokens.size(); i++) {
@@ -371,6 +372,22 @@ void scanner::scan(std::vector<std::string> tokens) {
 		}
 		if (inComment == true && tokens[i] == "_EOF") {
 			inComment = false;
+			continue;
+		}
+
+		//handle multi line coments
+		if (tokens[i] == "/*") {
+			inMultiLineComment = true;
+		}
+		if (inMultiLineComment = true && (tokens[i] != "_EOF" && tokens[i] != "*/")) {
+			continue;
+		}
+		if (inMultiLineComment = true && tokens[i] == "_EOF") {
+			std::cout << "ILLEGAL TOKEN\tUnbounded multiline comment found at end of file" << std::endl;
+			break;
+		}
+		if (inMultiLineComment = true && tokens[i] == "*/") {
+			inMultiLineComment = false;
 			continue;
 		}
 	}
