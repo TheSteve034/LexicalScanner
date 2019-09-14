@@ -30,6 +30,8 @@ private:
 	bool isStringContEnd(std::string token);
 	bool isIntConst(std::string token);
 	bool isId(std::string token);
+	bool isEOF(std::string token);
+	bool isNotEOL(std::string token);
 
 	std::string toCaps(std::string token);
 

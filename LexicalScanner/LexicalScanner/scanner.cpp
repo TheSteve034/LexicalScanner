@@ -255,87 +255,114 @@ bool scanner::isId(std::string token) {
 	}
 }
 
+bool scanner::isEOF(std::string token) {
+	if (token == "_EOF") {
+		std::cout << "FILE IS EMPTY" << std::endl;
+		return true;
+	}
+	else {
+		return false;
+	}
+}
+
+bool scanner::isNotEOL(std::string token) {
+	if (token == "_EOL") {
+		return false;
+	}
+	else {
+		return true;
+	}
+}
+
+/* The scan method takes the list of prepared tokens and identifies them as different lexems in the grammar.
+The scaner works as follows:
+1 - checks to see if the first token in _EOF, if so it reports an empty file.
+2 - checks to see if the token is " this will indicate that all token that come after are in a string constant
+	this check will ignore _EOL to allow for multi line strings. This will be true untill it scans another ". 
+	The scanner will then report a string const. If it encounters an _EOF before finding the closing " it will
+	report and illegal token.
+3 - The scanner will next check for /* this will imply a multiline comment. The scanner will then ignore all
+	subsequent tokens untill it encounters the closing multi line comment token. If it finds the _EOF token first
+	it will report the commnet as an illegal token.
+4 - the scanner will next look for the // token. This will imply a single line comment. The scanner will ignore
+	all tokens after this until it finds an _EOL or _EOF.
+5 - the scanner will now test to see if a token is an identifier
+6 - the scanner will now test to see if a token is a special symbol
+7 - the scanner will now tets to see if a token is a reserved word
+8 - if the token is not identified in any of the previous steps the scanner will report it as an illegal token.
+
+the scanner should never report out _EOL or _EOF these are being used a special tokens and they are also illegal in
+in the grammar. If the user atempts to use it as an intetifier it will either produce an illegal token or a malformed line
+that will be caught by the parser.
+*/
 void scanner::scan(std::vector<std::string> tokens) {
 	bool lexemeFound = false;
 	bool inComment = false;
 	bool inStringConst = false;
 	std::string tempStringConst = "";
-	/*for (auto& token : tokens) {
-		if (isSingelLineComment(token) && (inComment == false && inStringConst == false)) {
-			lexemeFound = false;
-			continue;
-		}
-		if (isMultiLineCommentStart(token)) {
-			lexemeFound = false;
-			inComment = true;	
-		}
-		if (isMultiLineCommentEnd(token)) {
-			lexemeFound = false;
-			inComment = false;
-			continue;
-		}
-		if (isStringConstStart(token) && inStringConst == false) {
+	for (int i = 0; i < tokens.size(); i++) {
+		//checking for " token
+		if (tokens[i] == "\"" && inStringConst == false) {
+			std::cout << "SPECIAL SYMBOL\t" + tokens[i] << std::endl;
 			inStringConst = true;
-			tempStringConst += token;
 			continue;
 		}
-		if (isStringContEnd(token) && inStringConst == true) {
-			inStringConst = false;
-			tempStringConst += token;
-			isStringConst(tempStringConst);
-			tempStringConst = "";
-			continue;
-		}
-		if (inStringConst) {
-			std::regex numORChar("[A-Z0-9]*");
-			std::string capToken = toCaps(token);
-			if (std::regex_match(capToken, numORChar)) {
-				if (tempStringConst == "\"") {
+		//handeling the string const
+		if (inStringConst == true && (tokens[i] != "\"" && tokens[i] != "_EOF")) {
+			std::string capToken = toCaps(tokens[i]);
+			std::regex charOrNumRE("[A-Z0-9]*");
+			//if this the first token in the string just add it
+			if (tempStringConst.empty()) {
+				if (isNotEOL(capToken)) {
 					tempStringConst += capToken;
+				}
+				continue;
+			}
+			//if this is not the first string check to see if it is a non alphabet char
+			//if it is add a space and the token. If not just add the token.
+			if (std::regex_match(capToken, charOrNumRE)) {
+				if (tempStringConst.empty()) {
+					if (isNotEOL(capToken)) {
+						tempStringConst += capToken;
+						continue;
+					}
+				}
+				else {
+					if (isNotEOL(capToken) && tokens[i] != "\"") {
+						tempStringConst += " ";
+						tempStringConst += capToken;
+						continue;
+					}
+					continue;
+				}
+			}
+			if (isNotEOL(capToken) && tokens[i] != "\"") {
+				if (tempStringConst.empty()) {
+					tempStringConst += capToken;
+
 				}
 				else {
 					tempStringConst += " ";
-					tempStringConst += capToken;
+					tempStringConst += tokens[i];
 				}
 			}
-			else {
-				tempStringConst += capToken;
-			}
+		}
+		//handeling an unbounded string that goes to EOF
+		if (inStringConst == true && tokens[i] == "_EOF") {
+			std::cout << "ILLEGAL TOKEN\t" + tempStringConst;
+			break;
+		}
+		//handeling the end of the string
+		if (inStringConst == true && tokens[i] == "\"") {
+			std::cout << "STRING CONSTANT\t" + tempStringConst << std::endl;
+			std::cout << "SPECIAL SYMBOL\t" + tokens[i] << std::endl;
+			inStringConst = false;
+			tempStringConst = "";
 			continue;
 		}
-		if (inComment) {
-			continue;
-		}
-		if (isReserved(token) && (inComment == false && inStringConst == false)) {
-			lexemeFound = true;
-			continue;
-		}
-		if (isSpecial(token)) {
-			lexemeFound = true;
-			continue;
-		}
-		if (isId(token)) {
-			lexemeFound = true;
-			continue;
-		}
-		if (isIntConst(token)) {
-			lexemeFound == true;
-			continue;
-		}
-		if (isStringConst(token)) {
-			lexemeFound == true;
-			continue;
-		}
-		if (inStringConst == true || inComment == true) {
-			lexemeFound = false;
-		}
-		lexemeFound = false;
-		if (lexemeFound == false) {
-			std::cout << "ILLEGAL TOKEN\t" + token << std::endl;
-		}
-	}*/
+	}
 
-	std::cout << "Tokens" << std::endl;
+	std::cout << "\nTokens\n" << std::endl;
 	for (auto& token : tokens) {
 		std::cout << token << std::endl;
 	}
