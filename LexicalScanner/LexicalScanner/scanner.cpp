@@ -53,22 +53,42 @@ std::vector<std::string> scanner::getTokens(std::string filePath) {
 			//tests for all special two char tokens as decribed by the grammar
 			if ((line[i] == '<' && line[i + 1] == '>') || (line[i] == '<' && line[i + 1] == '=') || (line[i] == '>' && line[i + 1] == '=')
 				|| (line[i] == ':' && line[i + 1] == '=') || (line[i] == '.' && line[i + 1] == '.')) {
-				token = line[i];
-				token += line[i + 1];
-				tokens.push_back(token);
-				token = "";
-				i = i + 1;
-				continue;
+				if (token.empty()) {
+					token = line[i];
+					token += line[i + 1];
+					tokens.push_back(token);
+					token = "";
+					i = i + 1;
+					continue;
+				}
+				else {
+					tokens.push_back(token);
+					token = line[i];
+					token += line[i + 1];
+					tokens.push_back(token);
+					token = "";
+					i = i + 1;
+					continue;
+				}
 			}
 
 			//check for all on char special tokens. These tokens as defined by the grammar.
 			if (line[i] == '+' || line[i] == '-' || line[i] == '*' || line[i] == '=' || line[i + 1] == '<' || line[i + 1] == '>'
 				|| line[i] == '(' || line[i] == ')' || line[i] == '[' || line[i] == ']' || line[i] == '.' || line[i] == ','
 				|| line[i] == ';' || line[i] == '\'' || line[i] == '/' || line[i] == ':') {
-				token = line[i];
-				tokens.push_back(token);
-				token = "";
-				continue;
+				if (token.empty()) {
+					token = line[i];
+					tokens.push_back(token);
+					token = "";
+					continue;
+				}
+				else {
+					tokens.push_back(token);
+					token = line[i];
+					tokens.push_back(token);
+					token = "";
+					continue;
+				}
 			}
 
 			/*
@@ -80,27 +100,19 @@ std::vector<std::string> scanner::getTokens(std::string filePath) {
 
 			if char is white space skip it
 			*/
-			else if (line[i] == ' ' && line[i + 1] == ' ') {
-				if (i < lineLength) {
-					continue;
-				}
-				else if (token == "") {
-					continue;
-				}
-			}
-			else if (line[i] == '\t') {
+			if (line[i] != ' ' && line[i] != '\t') {
+				token += line[i];
 				continue;
 			}
-			else if (line[i] == ' ' && line[i + 1] != ' ') {
-				tokens.push_back(token);
-				token = "";
-				continue;
-			}
-			else if (line[i] != ' ' && line[i + 1] != ' ') {
-				token += line[i];
-			}
-			else if ((line[i] != ' ' && line[i + 1] == ' ') && i + 1 != lineLength) {
-				token += line[i];
+			if (line[i] == ' ' || line[i] == '\t') {
+				if (token.empty()) {
+					continue;
+				}
+				else {
+					tokens.push_back(token);
+					token = "";
+					continue;
+				}
 			}
 
 		}
