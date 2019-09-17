@@ -1,5 +1,5 @@
 ﻿  scanner.cpp
 C:\Users\swree\source\repos\LexicalScanner\LexicalScanner\LexicalScanner\scanner.cpp(6,33) : warning C4129: '/': unrecognized character escape sequence
-C:\Users\swree\source\repos\LexicalScanner\LexicalScanner\LexicalScanner\scanner.cpp(144,20) : warning C4018: '<': signed/unsigned mismatch
-C:\Users\swree\source\repos\LexicalScanner\LexicalScanner\LexicalScanner\scanner.cpp(303,20) : warning C4018: '<': signed/unsigned mismatch
+C:\Users\swree\source\repos\LexicalScanner\LexicalScanner\LexicalScanner\scanner.cpp(187,20) : warning C4018: '<': signed/unsigned mismatch
+C:\Users\swree\source\repos\LexicalScanner\LexicalScanner\LexicalScanner\scanner.cpp(290,20) : warning C4018: '<': signed/unsigned mismatch
   LexicalScanner.vcxproj -> C:\Users\swree\source\repos\LexicalScanner\LexicalScanner\Debug\LexicalScanner.exe

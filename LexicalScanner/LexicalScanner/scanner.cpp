@@ -11,15 +11,42 @@ std::vector<std::string> scanner::getTokens(std::string filePath) {
 	std::string line = "";
 	std::vector<std::string> tokens = {};
 
+	bool inStringConst = false;
+	int tempI;
 	while (std::getline(file, line)) {
 		std::string token = "";
-		bool inStringConst = false;
 		int lineLength = line.length();
 		for (int i = 0; i < lineLength; i++) {
 			//Checks for all two character tokens. In the case of a two char token a token will be made of the currently
 			//checked char and the next and the loop variable will be incremented. Two char tokens are defined as special 
 			//symbols. This section will also test for symbols that start coments. This will be tracked so that the scanner 
 			//method can discard them.
+
+			//handeling strings
+			tempI = i;
+			if (line[i] == '\"' && inStringConst == true) {
+				if (token.empty()) {
+					token = line[i];
+					tokens.push_back(token);
+				}
+				else {
+					tokens.push_back(token);
+					token = line[i];
+					tokens.push_back(token);
+				}
+				token = "";
+				inStringConst = false;
+				continue;
+			}
+			if (inStringConst == true && tempI + 1 != lineLength) {
+				token += line[i];
+				continue;
+			}
+			else if (inStringConst == true && tempI + 1 == lineLength) {
+				token += line[i];
+				tokens.push_back(token);
+				continue;
+			}
 
 			//tests for the "/*" token
 			if (line[i] == '/' && line[i + 1] == '*') {
@@ -48,6 +75,7 @@ std::vector<std::string> scanner::getTokens(std::string filePath) {
 				i = i + 1;
 				continue;
 			}
+
 			//tests for all special two char tokens as decribed by the grammar
 			if ((line[i] == '<' && line[i + 1] == '>') || (line[i] == '<' && line[i + 1] == '=') || (line[i] == '>' && line[i + 1] == '=')
 				|| (line[i] == ':' && line[i + 1] == '=') || (line[i] == '.' && line[i + 1] == '.')) {
@@ -74,6 +102,21 @@ std::vector<std::string> scanner::getTokens(std::string filePath) {
 			if (line[i] == '+' || line[i] == '-' || line[i] == '*' || line[i] == '=' || line[i] == '<' || line[i] == '>'
 				|| line[i] == '(' || line[i] == ')' || line[i] == '[' || line[i] == ']' || line[i] == '.' || line[i] == ','
 				|| line[i] == ';' || line[i] == '\'' || line[i] == '/' || line[i] == ':'|| line[i] == '\"') {
+				if (line[i] == '\"') {
+					inStringConst = true;
+					if (token.empty()) {
+						token = line[i];
+						tokens.push_back(token);
+						token = "";
+					}
+					else {
+						tokens.push_back(token);
+						token = line[i];
+						tokens.push_back(token);
+						token = "";
+					}
+					continue;
+				}
 				if (token.empty()) {
 					token = line[i];
 					tokens.push_back(token);
@@ -121,11 +164,11 @@ std::vector<std::string> scanner::getTokens(std::string filePath) {
 		//symbol is the grammar so the scanner can assume that is the end of line. If a user 
 		//tries to define this symbol it will cause a complie error. If token is empty then
 		//just an EOL char is added.
-		if (token.empty()) {
+		if (token.empty() && inStringConst == false) {
 			token = "_EOL";
 			tokens.push_back(token);
 		}
-		else if (!token.empty()) {
+		else if (!token.empty() && inStringConst == false) {
 			tokens.push_back(token);
 			token = "_EOL";
 			tokens.push_back(token);
@@ -160,33 +203,6 @@ bool scanner::isReserved(std::string token) {
 	return isReserved;
 }
 
-//bool scanner::isSingelLineComment(std::string token) {
-//	if (std::regex_match(token, singelLineCommenetRE)) {
-//		return true;
-//	}
-//	else {
-//		return false;
-//	}
-//}
-//
-//bool scanner::isMultiLineCommentStart(std::string token) {
-//	if (token == "/*") {
-//		return true;
-//	}
-//	else {
-//		return false;
-//	}
-//}
-//
-//bool scanner::isMultiLineCommentEnd(std::string token) {
-//	if (token == "*/") {
-//		return true;
-//	}
-//	else {
-//		return false;
-//	}
-//}
-
 bool scanner::isSpecial(std::string token) {
 	bool isSpecial = false;
 	for (const auto& specialChar : specialSymbols) {
@@ -198,35 +214,6 @@ bool scanner::isSpecial(std::string token) {
 	}
 	return isSpecial;
 }
-
-//bool scanner::isStringConst(std::string token) {
-//	std::string capToken = toCaps(token);
-//	if (std::regex_match(capToken, stringConstantRE)) {
-//		std::cout << "STRING CONSTANT\t" + capToken << std::endl;
-//		return true;
-//	}
-//	else {
-//		return false;
-//	}
-//}
-//
-//bool scanner::isStringConstStart(std::string token) {
-//	if (token == "\"") {
-//		return true;
-//	}
-//	else {
-//		return false;
-//	}
-//}
-//
-//bool scanner::isStringContEnd(std::string token) {
-//	if (token == "\"") {
-//		return true;
-//	}
-//	else {
-//		return false;
-//	}
-//}
 
 bool scanner::isIntConst(std::string token) {
 	if (token == "0") {
@@ -345,6 +332,7 @@ void scanner::scan(std::vector<std::string> tokens) {
 					tempStringConst += " ";
 					tempStringConst += tokens[i];
 				}
+				continue;
 			}
 		}
 		//handeling an unbounded string that goes to EOF
@@ -411,7 +399,7 @@ void scanner::scan(std::vector<std::string> tokens) {
 		}
 
 		//token is now considered an illegal token
-		if (tokens[i] != "_EOL" && tokens[i] != "_EOF") {
+		if (tokens[i] != "_EOL" && tokens[i] != "_EOF" && (inComment || inStringConst || inMultiLineComment)) {
 			std::cout << "ILLEGAL TOKEN\t" + tokens[i] << std::endl;
 		}
 	}
