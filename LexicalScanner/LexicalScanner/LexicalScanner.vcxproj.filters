@@ -21,15 +21,15 @@
     <ClCompile Include="compiler.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="parser.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Header.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="scanner.h">
-      <Filter>Source Files</Filter>
-    </ClInclude>
-    <ClInclude Include="compiler.h">
       <Filter>Source Files</Filter>
     </ClInclude>
     <ClInclude Include="parser.h">

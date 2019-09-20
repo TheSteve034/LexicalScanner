@@ -153,10 +153,10 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="compiler.cpp" />
+    <ClCompile Include="parser.cpp" />
     <ClCompile Include="scanner.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="compiler.h" />
     <ClInclude Include="Header.h" />
     <ClInclude Include="parser.h" />
     <ClInclude Include="scanner.h" />
