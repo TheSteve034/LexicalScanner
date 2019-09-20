@@ -403,9 +403,4 @@ void scanner::scan(std::vector<std::string> tokens) {
 			std::cout << "ILLEGAL TOKEN\t" + tokens[i] << std::endl;
 		}
 	}
-
-	/*std::cout << "\nTokens\n" << std::endl;
-	for (auto& token : tokens) {
-		std::cout << token << std::endl;
-	}*/
 }

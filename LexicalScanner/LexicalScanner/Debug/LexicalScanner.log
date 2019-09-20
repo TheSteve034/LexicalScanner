@@ -1,5 +1,3 @@
-﻿  scanner.cpp
-C:\Users\swree\source\repos\LexicalScanner\LexicalScanner\LexicalScanner\scanner.cpp(6,33) : warning C4129: '/': unrecognized character escape sequence
-C:\Users\swree\source\repos\LexicalScanner\LexicalScanner\LexicalScanner\scanner.cpp(187,20) : warning C4018: '<': signed/unsigned mismatch
-C:\Users\swree\source\repos\LexicalScanner\LexicalScanner\LexicalScanner\scanner.cpp(290,20) : warning C4018: '<': signed/unsigned mismatch
-  LexicalScanner.vcxproj -> C:\Users\swree\source\repos\LexicalScanner\LexicalScanner\Debug\LexicalScanner.exe
+﻿C:\Program Files (x86)\Microsoft Visual Studio\2019\Preview\MSBuild\Microsoft\VC\v160\Microsoft.CppBuild.targets(452,5): warning MSB8028: The intermediate directory (Debug\) contains files shared from another project (Complier.vcxproj, LexicalScanner.vcxproj).  This can lead to incorrect clean and rebuild behavior.
+  compiler.cpp
+  LexicalScanner.vcxproj -> C:\Users\swree\source\repos\LexicalScanner\LexicalScanner\Debug\Compiler.exe
