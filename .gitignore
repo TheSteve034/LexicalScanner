@@ -40,3 +40,7 @@ ipch/
 *.exe
 *.out
 *.app
+
+# assembly and error files
+*.asm
+*.err

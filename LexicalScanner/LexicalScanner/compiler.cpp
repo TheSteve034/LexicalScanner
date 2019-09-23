@@ -13,8 +13,12 @@ int main(int argc, char* argv[])
 	}
 
 	scanner sc = scanner();
+	parser p = parser();
 
 	std::string filePath = argv[1];
-	tokens = sc.getTokens(filePath);
+	std::vector < std::string > tokens = sc.getTokens(filePath);
 	sc.scan(tokens);
+	p.getPath(filePath);
+	p.createFiles();
+	p.getTokenList(tokens);
 }

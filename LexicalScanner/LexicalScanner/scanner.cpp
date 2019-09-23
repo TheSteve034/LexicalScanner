@@ -195,7 +195,7 @@ bool scanner::isReserved(std::string token) {
 	for (const auto & reservedWord : reservedWords) {
 		std::string capToken = toCaps(token);
 		if (capToken == reservedWord) {
-			std::cout << "RESERVED WORD\t" + capToken << std::endl;
+			//std::cout << "RESERVED WORD\t" + capToken << std::endl;
 			isReserved = true;
 			break;
 		}
@@ -207,7 +207,7 @@ bool scanner::isSpecial(std::string token) {
 	bool isSpecial = false;
 	for (const auto& specialChar : specialSymbols) {
 		if (token == specialChar) {
-			std::cout << "SPECIAL SYMBOL\t" + token << std::endl;
+			//std::cout << "SPECIAL SYMBOL\t" + token << std::endl;
 			return true;
 			break;
 		}
@@ -217,11 +217,11 @@ bool scanner::isSpecial(std::string token) {
 
 bool scanner::isIntConst(std::string token) {
 	if (token == "0") {
-		std::cout << "INTEGER CONSTANT\t" + token << std::endl;
+		//std::cout << "INTEGER CONSTANT\t" + token << std::endl;
 		return true;
 	}
 	if (std::regex_match(token, intConstantRE)) {
-		std::cout << "INTEGER CONSTANT\t" + token << std::endl;
+		//std::cout << "INTEGER CONSTANT\t" + token << std::endl;
 		return true;
 	}
 	else {
@@ -232,7 +232,7 @@ bool scanner::isIntConst(std::string token) {
 bool scanner::isId(std::string token) {
 	std::string capToken = toCaps(token);
 	if (std::regex_match(capToken, idRE)) {
-		std::cout << "IDENTIFIER\t" + capToken << std::endl;
+		//std::cout << "IDENTIFIER\t" + capToken << std::endl;
 		return true;
 	}
 	else {
@@ -242,7 +242,7 @@ bool scanner::isId(std::string token) {
 
 bool scanner::isEOF(std::string token) {
 	if (token == "_EOF") {
-		std::cout << "FILE IS EMPTY" << std::endl;
+		//std::cout << "FILE IS EMPTY" << std::endl;
 		return true;
 	}
 	else {
@@ -281,16 +281,21 @@ the scanner should never report out _EOL or _EOF these are being used a special 
 in the grammar. If the user atempts to use it as an intetifier it will either produce an illegal token or a malformed line
 that will be caught by the parser.
 */
-void scanner::scan(std::vector<std::string> tokens) {
+int scanner::scan(std::vector<std::string> tokens) {
+	int linecount = 0;
 	bool lexemeFound = false;
 	bool inComment = false;
 	bool inMultiLineComment = false;
 	bool inStringConst = false;
 	std::string tempStringConst = "";
 	for (int i = 0; i < tokens.size(); i++) {
+		//track line count
+		if (tokens[i] == "_EOL") {
+			linecount++;
+		}
 		//checking for " token
 		if (tokens[i] == "\"" && inStringConst == false) {
-			std::cout << "SPECIAL SYMBOL\t" + tokens[i] << std::endl;
+			//std::cout << "SPECIAL SYMBOL\t" + tokens[i] << std::endl;
 			inStringConst = true;
 			continue;
 		}
@@ -337,13 +342,13 @@ void scanner::scan(std::vector<std::string> tokens) {
 		}
 		//handeling an unbounded string that goes to EOF
 		if (inStringConst == true && tokens[i] == "_EOF") {
-			std::cout << "ILLEGAL TOKEN\t" + tempStringConst;
-			break;
+			std::cout << "SYNTAX ERROR: ILLEGAL TOKEN\t" + tempStringConst + "ON LINE: " + std::to_string(linecount);
+			return -1;
 		}
 		//handeling the end of the string
 		if (inStringConst == true && tokens[i] == "\"") {
-			std::cout << "STRING CONSTANT\t" + tempStringConst << std::endl;
-			std::cout << "SPECIAL SYMBOL\t" + tokens[i] << std::endl;
+			//std::cout << "STRING CONSTANT\t" + tempStringConst << std::endl;
+			//std::cout << "SPECIAL SYMBOL\t" + tokens[i] << std::endl;
 			inStringConst = false;
 			tempStringConst = "";
 			continue;
@@ -370,8 +375,8 @@ void scanner::scan(std::vector<std::string> tokens) {
 			continue;
 		}
 		if (inMultiLineComment == true && tokens[i] == "_EOF") {
-			std::cout << "ILLEGAL TOKEN\tUnbounded multiline comment found at end of file" << std::endl;
-			break;
+			std::cout << "SNYTAX ERROR. ILLEGAL TOKEN\tUnbounded multiline comment found at end of file" << std::endl;
+			return -1;
 		}
 		if (inMultiLineComment == true && tokens[i] == "*/") {
 			inMultiLineComment = false;
@@ -399,8 +404,10 @@ void scanner::scan(std::vector<std::string> tokens) {
 		}
 
 		//token is now considered an illegal token
-		if (tokens[i] != "_EOL" && tokens[i] != "_EOF" && (inComment || inStringConst || inMultiLineComment)) {
-			std::cout << "ILLEGAL TOKEN\t" + tokens[i] << std::endl;
+		if (tokens[i] != "_EOL" && tokens[i] != "_EOF" && (inComment == false || inStringConst == false || inMultiLineComment == false)) {
+			std::cout << "SYNTAX ERROR. ILLEGAL TOKEN\t" + tokens[i] + ". FOUND ON LINE: " + std::to_string(linecount)<< std::endl;
+			return -1;
 		}
 	}
+	return 0;
 }

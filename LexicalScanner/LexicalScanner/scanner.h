@@ -31,6 +31,6 @@ private:
 
 public:
 	std::vector<std::string> getTokens(std::string filePath);
-	void scan(std::vector<std::string> tokens);
+	int scan(std::vector<std::string> tokens);
 
 };
