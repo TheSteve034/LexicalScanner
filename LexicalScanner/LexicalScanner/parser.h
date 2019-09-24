@@ -4,9 +4,7 @@
 #include <fstream>
 #include <string>
 #include <vector>
-#include <filesystem>
 #include "scanner.h"
-//#include <experimental/filesystem>
 
 
 class parser {
@@ -16,13 +14,13 @@ private:
 	int tokenCount = 0;
 	std::string currToken = "";
 	std::string nextToken = "";
-	std::string filepath = "";
 	std::fstream assembly = {};
 	std::fstream error = {};
 
 	void progressPastSingleLineComments();
 	int progressPastMultiLineComments();
 	int programRule();
+	int blockRule();
 
 	//need functions for each rule so that that can be called to determine if we have a semantically correct
 	//file.
@@ -32,7 +30,6 @@ public:
 	//sets the value of currToken and nexToken using the tokenCount number;
 	void getNextToken();
 	//creates .asm and .err files
-	void getPath(std::string& path);
-	void createFiles();
-	void parseFile();
+	void createFiles(std::string progName);
+	int parseFile();
 };

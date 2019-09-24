@@ -18,11 +18,13 @@ int main(int argc, char* argv[])
 	std::string filePath = argv[1];
 	std::vector < std::string > tokens = sc.getTokens(filePath);
 	int retval = sc.scan(tokens);
-	if (retval == -1) {
+	/*for (auto& token : tokens) {
+		std::cout << token << std::endl;
+	}*/
+	/*if (retval == -1) {
+		std::cout << "ILLEGAL TOKENS. FILE CANNOT BE SCANNED." << std::endl;
 		return -1;
-	}
-	p.getPath(filePath);
-	p.createFiles();
+	}*/
 	p.getTokenList(tokens);
 	p.parseFile();
 }

@@ -12,6 +12,7 @@ std::vector<std::string> scanner::getTokens(std::string filePath) {
 	std::vector<std::string> tokens = {};
 
 	bool inSLcomment = false;
+	bool inMLcomment = false;
 
 	bool inStringConst = false;
 	int tempI;
@@ -26,6 +27,17 @@ std::vector<std::string> scanner::getTokens(std::string filePath) {
 
 			//skip char if it is in a comment
 			if (inSLcomment == true && (line[i] != '/' && line[i+1] != '/')) {
+				continue;
+			}
+			if (inMLcomment == true && (line[i] != '*' && line[i + 1] != '/')) {
+				continue;
+			}
+			if (inMLcomment == true && (line[i] == '*' && line[i + 1] == '/')) {
+				i = i + 1;
+				inMLcomment = false;
+				continue;
+			}
+			if (inMLcomment == true) {
 				continue;
 			}
 			//handeling strings
@@ -56,22 +68,26 @@ std::vector<std::string> scanner::getTokens(std::string filePath) {
 
 			//tests for the "/*" token
 			if (line[i] == '/' && line[i + 1] == '*') {
-				token = line[i];
+				/*token = line[i];
 				token += line[i + 1];
 				tokens.push_back(token);
-				token = "";
+				token = "";*/
+				if (!token.empty()) {
+					tokens.push_back(token);
+				}
 				i = i + 1;
+				inMLcomment = true;
 				continue;
 			}
 			//tests for the "*/" token
-			if (line[i] == '*' && line[i + 1] == '/') {
+			/*if (line[i] == '*' && line[i + 1] == '/') {
 				token = line[i];
 				token += line[i + 1];
 				tokens.push_back(token);
 				token = "";
 				i = i + 1;
 				continue;
-			}
+			}*/
 			//tests fot he "//" token
 			if (line[i] == '/' && line[i + 1] == '/') {
 				/*token = line[i];
@@ -179,19 +195,24 @@ std::vector<std::string> scanner::getTokens(std::string filePath) {
 			continue;
 		}
 		if (token.empty() && inStringConst == false) {
-			token = "_EOL";
-			tokens.push_back(token);
+			continue;
 		}
 		else if (!token.empty() && inStringConst == false) {
 			tokens.push_back(token);
-			token = "_EOL";
-			tokens.push_back(token);
+			/*token = "_EOL";
+			tokens.push_back(token);*/
 		}
 	}
 	/*Finally, when the while loop ends we have consumed the whole file an _EOF will be added to
 	the tokens list to indicate the the entire file has been tokenized.*/
-	std::string endToken = "_EOF";
-	tokens.push_back(endToken);
+	if(inMLcomment == true) {
+		std::string unboundedComment = "_SYNTAX ERROR! UNBOUNDED COMMENT AT EOF.";
+		tokens.push_back(unboundedComment);
+	}
+	else {
+		std::string endToken = "_EOF";
+		tokens.push_back(endToken);
+	}
 	return tokens;
 }
 
@@ -368,34 +389,34 @@ int scanner::scan(std::vector<std::string> tokens) {
 			continue;
 		}
 
-		//handle single line comment
-		if (tokens[i] == "//" ) {
-			inComment = true;
-			continue;
-		}
-		if (inComment == true && tokens[i] != "_EOL") {
-			continue;
-		}
-		if (inComment == true && tokens[i] == "_EOL") {
-			inComment = false;
-			continue;
-		}
+		////handle single line comment
+		//if (tokens[i] == "//" ) {
+		//	inComment = true;
+		//	continue;
+		//}
+		//if (inComment == true && tokens[i] != "_EOL") {
+		//	continue;
+		//}
+		//if (inComment == true && tokens[i] == "_EOL") {
+		//	inComment = false;
+		//	continue;
+		//}
 
-		//handle multi line coments
-		if (tokens[i] == "/*") {
-			inMultiLineComment = true;
-		}
-		if (inMultiLineComment == true && (tokens[i] != "_EOF" && tokens[i] != "*/")) {
-			continue;
-		}
-		if (inMultiLineComment == true && tokens[i] == "_EOF") {
-			std::cout << "SNYTAX ERROR. ILLEGAL TOKEN\tUnbounded multiline comment found at end of file" << std::endl;
-			return -1;
-		}
-		if (inMultiLineComment == true && tokens[i] == "*/") {
-			inMultiLineComment = false;
-			continue;
-		}
+		////handle multi line coments
+		//if (tokens[i] == "/*") {
+		//	inMultiLineComment = true;
+		//}
+		//if (inMultiLineComment == true && (tokens[i] != "_EOF" && tokens[i] != "*/")) {
+		//	continue;
+		//}
+		//if (inMultiLineComment == true && tokens[i] == "_EOF") {
+		//	std::cout << "SNYTAX ERROR. ILLEGAL TOKEN\tUnbounded multiline comment found at end of file" << std::endl;
+		//	return -1;
+		//}
+		//if (inMultiLineComment == true && tokens[i] == "*/") {
+		//	inMultiLineComment = false;
+		//	continue;
+		//}
 
 		//test if a token is a reserved word
 		if (isReserved(tokens[i])) {
