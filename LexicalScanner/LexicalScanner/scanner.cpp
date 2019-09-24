@@ -11,6 +11,8 @@ std::vector<std::string> scanner::getTokens(std::string filePath) {
 	std::string line = "";
 	std::vector<std::string> tokens = {};
 
+	bool inSLcomment = false;
+
 	bool inStringConst = false;
 	int tempI;
 	while (std::getline(file, line)) {
@@ -22,6 +24,10 @@ std::vector<std::string> scanner::getTokens(std::string filePath) {
 			//symbols. This section will also test for symbols that start coments. This will be tracked so that the scanner 
 			//method can discard them.
 
+			//skip char if it is in a comment
+			if (inSLcomment == true && (line[i] != '/' && line[i+1] != '/')) {
+				continue;
+			}
 			//handeling strings
 			tempI = i;
 			if (line[i] == '\"' && inStringConst == true) {
@@ -68,11 +74,15 @@ std::vector<std::string> scanner::getTokens(std::string filePath) {
 			}
 			//tests fot he "//" token
 			if (line[i] == '/' && line[i + 1] == '/') {
-				token = line[i];
+				/*token = line[i];
 				token += line[i + 1];
 				tokens.push_back(token);
-				token = "";
+				token = "";*/
+				if (!token.empty()) {
+					tokens.push_back(token);
+				}
 				i = i + 1;
+				inSLcomment = true;
 				continue;
 			}
 
@@ -164,6 +174,10 @@ std::vector<std::string> scanner::getTokens(std::string filePath) {
 		//symbol is the grammar so the scanner can assume that is the end of line. If a user 
 		//tries to define this symbol it will cause a complie error. If token is empty then
 		//just an EOL char is added.
+		if (inSLcomment == true) {
+			inSLcomment = false;
+			continue;
+		}
 		if (token.empty() && inStringConst == false) {
 			token = "_EOL";
 			tokens.push_back(token);

@@ -17,8 +17,12 @@ int main(int argc, char* argv[])
 
 	std::string filePath = argv[1];
 	std::vector < std::string > tokens = sc.getTokens(filePath);
-	sc.scan(tokens);
+	int retval = sc.scan(tokens);
+	if (retval == -1) {
+		return -1;
+	}
 	p.getPath(filePath);
 	p.createFiles();
 	p.getTokenList(tokens);
+	p.parseFile();
 }
