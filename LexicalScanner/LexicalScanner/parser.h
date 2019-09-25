@@ -17,13 +17,15 @@ private:
 	std::fstream assembly = {};
 	std::fstream error = {};
 
-	void progressPastSingleLineComments();
-	int progressPastMultiLineComments();
 	int programRule();
 	int blockRule();
+	int varDecRule();
+	int moreDeclsRule();
+	int moreVarsRule();
+	int arrayDefRule();
+	int indexRangeRule();
+	int indexListRule();
 
-	//need functions for each rule so that that can be called to determine if we have a semantically correct
-	//file.
 public:
 	//gathers the tokens from the scanner.
 	void getTokenList(std::vector<std::string> scanedTokens);
