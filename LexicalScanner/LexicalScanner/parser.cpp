@@ -131,7 +131,10 @@ int parser::varDecRule() {
 		getNextToken();
 		arrayDefRule();
 	}
-
+	
+	if (currToken == "BEGIN" || currToken == "PROCEDURE") {
+		return 0;
+	}
 	//check for ";" at the end of var declarations.
 	getNextToken();
 	if (currToken != ";") {
@@ -231,6 +234,14 @@ int parser::arrayDefRule() {
 			}
 			else {
 				//now check to method to test for simple type rule.
+				getNextToken();
+				if (currToken != "INT" && currToken != "BOOLEAN" && currToken != "STRING") {
+					error << "SYNTAX ERROR! UNKNOWN VARIABLE TYPE. Failed in parser::arrayDefRule." << std::endl;
+					std::cout << "SYNTAX ERROR! UNKNOWN TYPE " + currToken << std::endl;
+				}
+				else {
+					return 0;
+				}
 			}
 		}
 	}
@@ -239,7 +250,6 @@ int parser::arrayDefRule() {
 /*
 <index range>	::=	<index bound> . . <index bound>   <index list>
 <index bound>	::=	<sign>   <integer constant>
-
 */
 int parser::indexRangeRule() {
 	//first we will check to see if currToken is a sign (- or +) if it is then check to see if the next token is 
@@ -261,15 +271,23 @@ int parser::indexRangeRule() {
 				return -1;
 			}
 			else {
-				//check to see if the next token is an int const.
+				//check to see if the next token is a signed int const
 				getNextToken();
-				if (!sc.isIntConst(currToken)) {
-					error << "SYNTAX ERROR! ONLY INT CONSTANTS ARE ALLOWED AS INDEX RANGE VALULES. Failed in parser::indexRangeRule" << std::endl;
-					std::cout << "SYNTAX ERROR! ONLY INT CONSTANTS ARE ALLOWED AS INDEX RANGE VALULES. " + currToken << std::endl;
-					return -1;
+				if (currToken == "-" || currToken == "+") {
+					getNextToken();
+					if (!sc.isIntConst(currToken)) {
+						error << "SYNTAX ERROR! ONLY INT CONSTANTS ARE ALLOWED AS INDEX RANGE VALULES. Failed in parser::indexRangeRule" << std::endl;
+						std::cout << "SYNTAX ERROR! ONLY INT CONSTANTS ARE ALLOWED AS INDEX RANGE VALULES. " + currToken << std::endl;
+						return -1;
+					}
 				}
 				else {
-					return 0;
+					//it wasn't a signed int const. Now check to see if it is an int const.
+					if (!sc.isIntConst(currToken)) {
+						error << "SYNTAX ERROR! ONLY INT CONSTANTS ARE ALLOWED AS INDEX RANGE VALULES. Failed in parser::indexRangeRule" << std::endl;
+						std::cout << "SYNTAX ERROR! ONLY INT CONSTANTS ARE ALLOWED AS INDEX RANGE VALULES. " + currToken << std::endl;
+						return -1;
+					}
 				}
 			}
 		}
@@ -277,7 +295,6 @@ int parser::indexRangeRule() {
 	}
 	//this the case that it is an unsigned number
 	else{
-		getNextToken();
 		if (!sc.isIntConst(currToken)) {
 			error << "SYNTAX ERROR! ONLY INT CONSTANTS ARE ALLOWED AS INDEX RANGE VALULES. Failed in parser::indexRangeRule" << std::endl;
 			std::cout << "SYNTAX ERROR! ONLY INT CONSTANTS ARE ALLOWED AS INDEX RANGE VALULES. " + currToken << std::endl;
@@ -292,27 +309,60 @@ int parser::indexRangeRule() {
 				return -1;
 			}
 			else {
-				//check to see if the next token is an int const.
+				//check to see if the next token is a signed int const
 				getNextToken();
-				if (!sc.isIntConst(currToken)) {
-					error << "SYNTAX ERROR! ONLY INT CONSTANTS ARE ALLOWED AS INDEX RANGE VALULES. Failed in parser::indexRangeRule" << std::endl;
-					std::cout << "SYNTAX ERROR! ONLY INT CONSTANTS ARE ALLOWED AS INDEX RANGE VALULES. " + currToken << std::endl;
-					return -1;
+				if (currToken == "-" || currToken == "+") {
+					getNextToken();
+					if (!sc.isIntConst(currToken)) {
+						error << "SYNTAX ERROR! ONLY INT CONSTANTS ARE ALLOWED AS INDEX RANGE VALULES. Failed in parser::indexRangeRule" << std::endl;
+						std::cout << "SYNTAX ERROR! ONLY INT CONSTANTS ARE ALLOWED AS INDEX RANGE VALULES. " + currToken << std::endl;
+						return -1;
+					}
 				}
 				else {
-					return 0;
+					//it wasn't a signed int const. Now check to see if it is an int const.
+					if (!sc.isIntConst(currToken)) {
+						error << "SYNTAX ERROR! ONLY INT CONSTANTS ARE ALLOWED AS INDEX RANGE VALULES. Failed in parser::indexRangeRule" << std::endl;
+						std::cout << "SYNTAX ERROR! ONLY INT CONSTANTS ARE ALLOWED AS INDEX RANGE VALULES. " + currToken << std::endl;
+						return -1;
+					}
 				}
 			}
 		}
 	}
-	//new we need to check for an index list
+	//now we need to check for an index list
+	getNextToken();
+	if (indexListRule() != 0) {
+		return -1;
+	}
 }
 
 /*
 <index list>	::=	,   <index bound> . . <index bound>   <index list>   |	]
 */
 int parser::indexListRule() {
-
+	//first need to check if currToken is either "]" or ","
+	if (currToken != "]" && currToken != ",") {
+		error << "SYNTAX ERROR! INNCORRECTLY BOUNDED ARRAY DEFFINITON. Failed in parser::indexListRule" << std::endl;
+		std::cout << "SYNTAX ERROR! INNCORRECTLY BOUNDED ARRAY DEFFINITON. " + currToken << std::endl;
+		return -1;
+	}
+	else if (currToken == "]") {
+		//if it is "]" then we are done with the array
+		return 0;
+	}
+	else {
+		//this the case where we have another list of ranges. This means we are defining a multi-level array
+		//so we call indexRangeRule
+		if (indexRangeRule() != 0) {
+			error << "SYNTAX ERROR! INNCORRECTLY BOUNDED ARRAY DEFFINITON. Failed in parser::indexListRule" << std::endl;
+			std::cout << "SYNTAX ERROR! INNCORRECTLY BOUNDED ARRAY DEFFINITON. " + currToken << std::endl;
+			return -1;
+		}
+		else {
+			return 0;
+		}
+	}
 }
 
 int parser::parseFile() {

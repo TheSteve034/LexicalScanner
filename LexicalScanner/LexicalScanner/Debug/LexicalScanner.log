@@ -1,7 +1,8 @@
 ﻿C:\Program Files (x86)\Microsoft Visual Studio\2019\Preview\MSBuild\Microsoft\VC\v160\Microsoft.CppBuild.targets(452,5): warning MSB8028: The intermediate directory (Debug\) contains files shared from another project (Complier.vcxproj, LexicalScanner.vcxproj).  This can lead to incorrect clean and rebuild behavior.
   parser.cpp
 C:\Users\swree\source\repos\LexicalScanner\LexicalScanner\LexicalScanner\parser.cpp(87,16) : warning C4129: ' ': unrecognized character escape sequence
-C:\Users\swree\source\repos\LexicalScanner\LexicalScanner\LexicalScanner\parser.cpp(200)  : warning C4715: 'parser::moreVarsRule': not all control paths return a value
-C:\Users\swree\source\repos\LexicalScanner\LexicalScanner\LexicalScanner\parser.cpp(185)  : warning C4715: 'parser::moreDeclsRule': not all control paths return a value
-C:\Users\swree\source\repos\LexicalScanner\LexicalScanner\LexicalScanner\parser.cpp(237)  : warning C4715: 'parser::arrayDefRule': not all control paths return a value
+C:\Users\swree\source\repos\LexicalScanner\LexicalScanner\LexicalScanner\parser.cpp(188)  : warning C4715: 'parser::moreDeclsRule': not all control paths return a value
+C:\Users\swree\source\repos\LexicalScanner\LexicalScanner\LexicalScanner\parser.cpp(203)  : warning C4715: 'parser::moreVarsRule': not all control paths return a value
+C:\Users\swree\source\repos\LexicalScanner\LexicalScanner\LexicalScanner\parser.cpp(248)  : warning C4715: 'parser::arrayDefRule': not all control paths return a value
+C:\Users\swree\source\repos\LexicalScanner\LexicalScanner\LexicalScanner\parser.cpp(338)  : warning C4715: 'parser::indexRangeRule': not all control paths return a value
   LexicalScanner.vcxproj -> C:\Users\swree\source\repos\LexicalScanner\LexicalScanner\Debug\Compiler.exe
