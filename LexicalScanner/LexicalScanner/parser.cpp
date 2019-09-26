@@ -450,6 +450,133 @@ int parser::paramListsRule() {
 	}
 }
 
+/*
+<statement part>	::=	<compound statement>
+*/
+int parser::statmentPartRule() {
+	//this method is called when the currToken is BEGIN.
+	if (compoundStatmentRule() != 0) {
+		error << "SYNTAX ERROR! MALFORMED STAMENT. Failed in parser::statmentPartRule" << std::endl;
+		std::cout << "SYNTAX ERROR! MALFORMED STAMENT." << std::endl;
+		return -1;
+	}
+	else {
+		return 0;
+	}
+
+}
+
+/*
+<compound statement>	::=	begin   <statement>   <more stmts>   end
+	// NOTE: The final statement before an END is
+	// not terminated by a semicolon.
+*/
+int parser::compoundStatmentRule() {
+	//if this is called then currToken is Begin.
+	getNextToken();
+	//now check for a statment!
+}
+
+/*
+<statement>	::=	<simple statement>   |	  <structured statement>
+*/
+int parser::statmentRule() {
+
+}
+
+/*
+<simple statement>	::=	<assignment statement>   |	  <procedure call>   |
+<read statement>   |	<write statement>
+*/
+int parser::simpleStatmentRule() {
+
+}
+
+/*
+<assignment statement>	::=	<variable>   :=   <expression>
+
+	// Array assignments can seem a little tricky, but the actual
+	// assignment is of only the component type of the array (a
+	// simple type). There is no assignemnt from one array to another,
+	// only from an expression to an array element. For example, the
+	// following would be valid array assignments:
+	//       bob[2,4] := 25;
+	//       harry[3*9] := "Gryfyndor forever";
+	//   The index value must be checked to ensure it is in the range
+	//   specified in the array declaration.
+	//       bob[bob[0,-3], bob[bob[2,4],5-num1]] := num2*3-num3/42;
+	// Semantic note: Type checking must be performed on all
+	// assignments, the right side must match the left side. For string
+	// concatenation, the variable and all components of the expression
+	// must be string types (remember, the results of concatenation are
+	// truncated before the assignment is made).
+*/
+int parser::assingmentStatmentRule() {
+
+}
+
+/*
+<variable>				::=	<variable identifier>   <indexed var>
+<variable identifier>	::=	<identifier>
+<indexed var>			::=	[   <expression>   <array idx>   |	 <empty-string>
+*/
+int parser::variableRule() {
+
+}
+
+/*
+<expression>	::=	<simple expression>   <rel exp>
+*/
+int parser::expressionRule() {
+
+}
+
+/*
+<simple expression>	::=	<sign>   <term>   <add term>
+<sign>				::=	+   |   -   |   <empty-string>
+*/
+int parser::simpleExpressionRule() {
+
+}
+
+/*
+<term>	::=	<factor>   <mul factor>
+*/
+int parser::termRule() {
+
+}
+
+/*
+<factor>	::=	<variable>   |	<constant>   |
+(   <expression>   )   |	not   <factor>
+*/
+int parser::factorRule() {
+
+}
+
+/*
+<mul factor>	::=	<mul op>   <factor>   <mul factor>   |	 <empty-string>
+*/
+int parser::mulFactorRule() {
+
+}
+
+/*
+<mul op>	::=	*   |   /   |   and
+*/
+int mulOpRule() {
+
+}
+
+/*
+<rel exp>	::=	<rel op>   <simple expression>   |	 <empty-string>
+<rel op>	::=	=   | <>   | <   | <=   | >=   | >
+*/
+int parser::relExpressionRule() {
+
+}
+
+
 int parser::parseFile() {
 	getNextToken();
 	if (programRule() != 0) {

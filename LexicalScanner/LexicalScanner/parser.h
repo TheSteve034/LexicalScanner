@@ -29,6 +29,20 @@ private:
 	int procDeclRule();
 	int paramListsRule();
 	int paramPassingRule();
+	int statmentPartRule();
+	int compoundStatmentRule();
+	int statmentRule();
+	int simpleStatmentRule();
+	int assingmentStatmentRule();
+	int variableRule();
+	int expressionRule();
+	int simpleExpressionRule();
+	int relExpressionRule();
+	int termRule();
+	int factorRule();
+	int mulFactorRule();
+	int mulOpRule();
+
 
 public:
 	//gathers the tokens from the scanner.
