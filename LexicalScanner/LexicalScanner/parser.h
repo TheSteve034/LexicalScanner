@@ -25,6 +25,10 @@ private:
 	int arrayDefRule();
 	int indexRangeRule();
 	int indexListRule();
+	int procDeclPartRule();
+	int procDeclRule();
+	int paramListsRule();
+	int paramPassingRule();
 
 public:
 	//gathers the tokens from the scanner.

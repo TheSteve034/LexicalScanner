@@ -365,6 +365,91 @@ int parser::indexListRule() {
 	}
 }
 
+/*
+<procedure declaration part>	::=	<procedure declaration>   ; <procedure declaration part>   |
+<empty-string>
+*/
+int parser::procDeclPartRule() {
+	//this rule is only called is currToken is "PROCEDURE"
+	//call procDeclRule
+	if (procDeclRule() != 0) {
+		error << "SYNTAX ERROR! MALFORMED PROCEDURE DECLARATION. Failed in parser::procDeclPartRule" << std::endl;
+		std::cout << "SYNTAX ERROR! MALFORMED PROCEDURE DECLARATION." << std::endl;
+		return -1;
+	}
+	//now check for ";"
+	//now check if there is another proc decl part
+}
+
+/*
+<procedure declaration>	::=	procedure <identifier>   (   <parameter list>   ;   <block>
+
+	// Examples:
+	//       procedure myProcedure(int * param1, string param2) ;
+	//                   begin <statement> end
+	//       procedure myProcedure(int * param1, string param2) ;
+	//                   begin <statement> end
+	//       PROcEDure myproc(); BEGIN <statement> END
+	// Semantic note: When a parameter is declared as pass by reference
+	// (an * after the type), the expression in the procedure call must
+	// evaluate to an address. When a parameter is passed by value,
+	// only the value of the expression is used and is stored in a
+	// location available to the procedure.
+
+*/
+int parser::procDeclRule() {
+	//the first step of this rule  is to check for an ID it will only be called if currtoken is PROCEDURE
+	getNextToken();
+	if (!sc.isId(currToken) != 0) {
+		error << "SYNTAX ERROR! IDENTIFIER MUST FOLLOW KEYWORD \"PROCEDURE\". Failed in parser::procDeclRule" << std::endl;
+		std::cout << "SYNTAX ERROR! IDENTIFIER MUST FOLLOW KEYWORD \"PROCEDURE\". " + currToken << std::endl;
+		return -1;
+	}
+	else {
+		//now check for a "("
+		getNextToken();
+		if (currToken != "(") {
+			error << "SYNTAX ERROR! MISSING THE \"(\" TOKEN WHEN CREATING AN PARAMETER LIST. Failed in parser::procDeclRule" << std::endl;
+			std::cout << "SYNTAX ERROR! MISSING THE \"(\" TOKEN WHEN CREATING AN PARAMETER LIST." << std::endl;
+			return -1;
+		}
+		else {
+			//now look for a paramter list. Need to call a function for this.
+			if (paramListsRule() != 0) {
+				error << "SYNTAX ERROR! MALFORMED PARAM LIST. Failed in parser::procDeclRule()" << std::endl;
+				std::cout << "SYNTAX ERROR! MALFORMED PARAM LIST. " << std::endl;
+				return -1;
+			}
+		}
+	}
+}
+
+/*
+<parameter list>	::=	<type identifier>   <param passing>   |		)
+<type identifier>	::=	int   |		boolean   |		string
+
+	// Semantic note: string is an array of characters which we
+	// will limit to 128 bytes (127 characters with a NULL terminator).
+	// Type checking must be performed for all statements when
+	// variables are involved. The '+' operator is overloaded to perform
+	// string concatenation, with the result truncated to fit the
+	// defined size. No other operators are used with the string type.
+	// The result of any expression evaluation must be the correct type.
+
+*/
+int parser::paramListsRule() {
+	//check if the next token is a type identifier
+	getNextToken();
+	if (currToken != "INT" && currToken != "BOOLEAN" && currToken != "STRING") {
+		error << "SYNTAX ERROR! EACH PARAMETER IN A PARMETER LIST MUST HAVE A VALID TYPE. Failed in parser::paramListsRule" << std::endl;
+		std::cout << "SYNTAX ERROR!EACH PARAMETER IN A PARMETER LIST MUST HAVE A VALID TYPE. " + currToken << std::endl;
+		return -1;
+	}
+	else {
+		//now call paramPassingRule()
+	}
+}
+
 int parser::parseFile() {
 	getNextToken();
 	if (programRule() != 0) {
