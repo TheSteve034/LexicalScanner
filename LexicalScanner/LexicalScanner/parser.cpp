@@ -96,11 +96,11 @@ int parser::blockRule() {
 				return -1;
 			}
 		}
-		if (nextToken == "PROCEDURE") {
+		if (currToken == "PROCEDURE") {
 			//call proc method
 		}
-		if (nextToken == "BEGIN" ) {
-			//call BEGIN method
+		if (currToken == "BEGIN" ) {
+			statmentPartRule();
 		}
 	}
 	return 0;
@@ -475,12 +475,68 @@ int parser::compoundStatmentRule() {
 	//if this is called then currToken is Begin.
 	getNextToken();
 	//now check for a statment!
+	if (statmentRule() != 0) {
+		error << "SYNTAX ERROR! MALFORMED STATMENT. Failed in parser::compoundStatmentRule" << std::endl;
+		std::cout << "SYNTAX ERROR! MALFORMED STATMENT." << std::endl;
+		return -1;
+	}
+	else {
+		//check for more statments
+		if (moreStatmentsRule() != 0) {
+			error << "SYNTAX ERROR. MALFORMED STATMENT. Failed in parser::compoundStatmentRule" << std::endl;
+			return -1;
+		}
+		else {
+			//test for END.
+			if (currToken != "END") {
+				error << "SYNTAX ERROR! BEGIN BLOCK MUST TERMINATE WITH THE WORD \"end\". Failed in parser::compoundStatmentRule" << std::endl;
+				std::cout << "SYNTAX ERROR!BEGIN BLOCK MUST TERMINATE WITH THE WORD \"end\". " + currToken << std::endl;
+				return -1;
+			}
+		}
+	}
+	return 0;
+}
+
+/*
+<more stmts>	::=	;   <statement>   <more stmts>   |	 <empty-string>
+*/
+int parser::moreStatmentsRule() {
+	//first we check for a ";" if we find one then there are more statments
+	//if not the then return 0;
+	//need to getNetToken
+	getNextToken();
+	if (currToken != ";") {
+		return 0; //there are no more statments
+	}
+	else {
+		//there are more statments. call statment again and then call more statments.
+		getNextToken();
+		if (statmentRule() != 0) {
+			return -1;
+		}
+		else {
+			if (moreStatmentsRule() != 0) {
+				error << "SYNTAX ERROR! MALFORMED STATMENT. Failed in moreStatmentsRule()" << std::endl;
+				std::cout << "SYNTAX ERROR!MALFORMED STATMENT." << std::endl;
+				return -1;
+			}
+		}
+	}
 }
 
 /*
 <statement>	::=	<simple statement>   |	  <structured statement>
 */
 int parser::statmentRule() {
+	//chek for a simple stament then for a structured statment
+	if (simpleStatmentRule() != 0) {
+		error << "SYNTAX ERROR! MALFORMED SIMPLE STATMENT. Failed in parser::statmentRule" << std::endl;
+		return -1;
+	}
+	else {
+		//check for <structured statement>
+	}
 
 }
 
@@ -489,7 +545,15 @@ int parser::statmentRule() {
 <read statement>   |	<write statement>
 */
 int parser::simpleStatmentRule() {
-
+	//this method will need to check for all the types of staments
+	//assingment statment
+	if (assingmentStatmentRule() != 0) {
+		error << "MALFORMED SIMPLE STATMENT. Failed in parser::simpleStatmentRule" << std::endl;
+		return -1;
+	}
+	else {
+		//check for procedure call
+	}
 }
 
 /*
@@ -512,7 +576,28 @@ int parser::simpleStatmentRule() {
 	// truncated before the assignment is made).
 */
 int parser::assingmentStatmentRule() {
-
+	if (variableRule() != 0) {
+		error << "SYNTAX ERROR! MALFORMED ASSINGMENT STATMENT. Failed in parser::assingmentStatmentRule" << std::endl;
+		return -1;
+	}
+	else {
+		//now check for the token ":="
+		getNextToken();
+		if (currToken != ":=") {
+			error << "SYNTAX ERROR! MUST USE \":=\" TO MAKE AN ASSINGMENT. Failed in parser::assingmentStatmentRule" << std::endl;
+			std::cout << "SYNTAX ERROR! MUST USE \":=\" TO MAKE AN ASSINGMENT. " + currToken << std::endl;
+			return -1;
+		}
+		else {
+			//now check for an expression.
+			getNextToken();
+			if (expressionRule() != 0) {
+				error << "SYNTAX ERROR! INVALID EXRESSION USED AS AN ASSINGMENT. Failed in assingmentStatmentRule" << std::endl;
+				return -1;
+			}
+		}
+	}
+	return 0;
 }
 
 /*
@@ -521,14 +606,84 @@ int parser::assingmentStatmentRule() {
 <indexed var>			::=	[   <expression>   <array idx>   |	 <empty-string>
 */
 int parser::variableRule() {
+	//at this point currToken is supposed to varName.
+	if (!sc.isId(currToken)) {
+		error << "SYNTAX ERROR! VARIABLE CALL MUST HAVE A VALID IDENTIFIER. Failed in parser::variableRule" << std::endl;
+		std::cout << "SYNTAX ERROR! UNKNOWN IDENTIFIER." << std::endl;
+		return -1;
+	}
+	else {
+		//now check for indexed var. This is optional
+		if (nextToken == "[") {
+			getNextToken();
+			if (indexedVarRule() != 0) {
+				error << "SYNTAX ERROR! INVALID ARRAY VAR. Failed in arser::variableRule()" << std::endl;
+				std::cout << "SYNTAX ERROR!INVALID ARRAY VAR." << std::endl;
+			}
+			//now check for an indexed var
+		}
+		else {
+			return 0;
+		}
+	}
+	return 0;
+}
 
+/*
+<indexed var>	::=	[   <expression>   <array idx>   | <empty-string>
+*/
+int parser::indexedVarRule() {
+	//if we call this then we already know that currToken is "[" we don't need to check for
+	//empty string
+	getNextToken();
+	if (expressionRule() != 0) {
+		error << "SYNTAX ERROR! MALFORMED ARRAY REFERENCE. Failed in parser::indexedVarRule" << std::endl;
+		return -1;
+	}
+	else {
+		//now check for array index
+		if (arrayIdxRule() != 0) {
+			error << "SYNTAX ERROR! MALFORMED ARRAY REFERENCE. Failed in parser::indexedVarRule" << std::endl;
+			return -1;
+		}
+	} 
+	return 0;
+}
+
+/*
+<array idx>	::=	,   <expression>   <array idx>   |	 ]
+*/
+int parser::arrayIdxRule() {
+	//if currToken is "]" then return 0
+	getNextToken();
+	if (currToken == "]") {
+		getNextToken();
+		return 0;
+	}
+	else {
+		//now check for ","
+		if (currToken != ",") {
+			error << "SYNTAX ERROR! INVALID ARRAY INDEX FOUND. Failed in arser::arrayIdxRule" << std::endl;
+			std::cout << "SYNTAX ERROR! INVALID ARRAY INDEX FOUND. " + currToken << std::endl;
+			return -1;
+		}
+		else {
+
+		}
+	}
+	return 0;
 }
 
 /*
 <expression>	::=	<simple expression>   <rel exp>
 */
 int parser::expressionRule() {
-
+	//first check for simple expression.
+	if (simpleExpressionRule() != 0) {
+		error << "SYNTAX ERROR! MALFORMED EXPRESSION. Failed in parser::expressionRule" << std::endl;
+		return -1;
+	}
+	return 0;
 }
 
 /*
@@ -536,14 +691,34 @@ int parser::expressionRule() {
 <sign>				::=	+   |   -   |   <empty-string>
 */
 int parser::simpleExpressionRule() {
-
+	//in this step I can check for a sign or a term by looking at currToken;
+	if (currToken == "+" || currToken == "-") {
+		getNextToken();
+	}
+	//check for a term
+	if (termRule() != 0) {
+		error << "SYTNAX ERROR! MALFORMED TERM. Failed in parser::simpleExpressionRule" << std::endl;
+		return -1;
+	}
+	else {
+		//check for an add term
+	}
+	return 0;
 }
 
 /*
 <term>	::=	<factor>   <mul factor>
 */
 int parser::termRule() {
-
+	//check for a factor. No need to get nextToken yet.
+	if (factorRule() != 0) {
+		error << "SYNTAX ERROR! MALFORMED FACTOR. Failed in parser::termRule()" << std::endl;
+		return -1;
+	}
+	else {
+		//check for a mul factor. It may not be here. Use nextToken.
+	}
+	return 0;
 }
 
 /*
@@ -551,21 +726,40 @@ int parser::termRule() {
 (   <expression>   )   |	not   <factor>
 */
 int parser::factorRule() {
-
+	//first check for a constant. If it's a string const then currtoken will be '"'.
+ 	if (currToken == "\"") {
+		//its a may be a string const
+		getNextToken();
+		//test for string const. To test check if the nextToken is '"'
+		if (nextToken != "\"") {
+			error << "SYNTAX ERROR! MALFORMED STRING CONST. Failed in parser::factorRule" << std::endl;
+			std::cout << "STRING CONSTATNS BUT START AND END WITH \"." << std::endl;
+			return -1;
+		}
+		else {
+			return 0; //it is a well formed string const.
+		}
+	}
+	if (sc.isIntConst(currToken)) {
+		//if this is true then we have an int const
+		return 0;
+	}
+	//we still need to check for ( expression ) | NOT factor.
+	return 0;
 }
 
 /*
 <mul factor>	::=	<mul op>   <factor>   <mul factor>   |	 <empty-string>
 */
 int parser::mulFactorRule() {
-
+	return 0;
 }
 
 /*
 <mul op>	::=	*   |   /   |   and
 */
 int mulOpRule() {
-
+	return 0;
 }
 
 /*
@@ -573,7 +767,7 @@ int mulOpRule() {
 <rel op>	::=	=   | <>   | <   | <=   | >=   | >
 */
 int parser::relExpressionRule() {
-
+	return 0;
 }
 
 

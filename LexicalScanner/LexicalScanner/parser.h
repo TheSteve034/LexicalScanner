@@ -42,6 +42,9 @@ private:
 	int factorRule();
 	int mulFactorRule();
 	int mulOpRule();
+	int moreStatmentsRule();
+	int indexedVarRule();
+	int arrayIdxRule();
 
 
 public:
