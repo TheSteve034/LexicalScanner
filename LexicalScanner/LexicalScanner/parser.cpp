@@ -505,12 +505,7 @@ int parser::moreStatmentsRule() {
 	//first we check for a ";" if we find one then there are more statments
 	//if not the then return 0;
 	//need to getNetToken
-	getNextToken();
-	if (currToken != ";") {
-		return 0; //there are no more statments
-	}
-	else {
-		//there are more statments. call statment again and then call more statments.
+	if (currToken == ";") {
 		getNextToken();
 		if (statmentRule() != 0) {
 			return -1;
@@ -523,21 +518,81 @@ int parser::moreStatmentsRule() {
 			}
 		}
 	}
+	else {
+		//there are no more statments;
+		return 0;
+	}
 }
 
 /*
 <statement>	::=	<simple statement>   |	  <structured statement>
 */
 int parser::statmentRule() {
-	//chek for a simple stament then for a structured statment
-	if (simpleStatmentRule() != 0) {
-		error << "SYNTAX ERROR! MALFORMED SIMPLE STATMENT. Failed in parser::statmentRule" << std::endl;
+	//need to check for a structured statment first
+	//these start with "IF", "CASE", "BEGIN" or "WHILE"
+	if (currToken == "IF" || currToken == "WHILE" || currToken == "CASE" || currToken == "BEGIN") {
+		//if I make it here then there are structure statments
+		if (structuredStatmentRule() != 0) {
+			error << "SYNTAX ERROR! MALFORMED STRUCTURED STATMENT. Failed in parser::statmentRule()" << std::endl;
+			return -1;
+		}
+	}
+	else {
+		if (simpleStatmentRule() != 0) {
+			error << "SYNTAX ERROR! MALFORMED SIMPLE STATMENT. Failed in parser::statmentRule" << std::endl;
+			return -1;
+		}
+		else {
+			return 0;
+		}
+	}
+	return 0;
+}
+
+/*
+<structured statement>	::=	<compound statement>   |	<if statement>   |
+<case statement>   |	<while statement>
+*/
+int parser::structuredStatmentRule() {
+	//currToken will be a non terminal as we can branch from here without
+	//calling next token.
+	if (currToken == "WHILE") {
+		//getNetToken() and test for a valid while loop
+		whileStatmentRule();
+		
+	}
+	if (currToken == "IF") {
+
+	}
+	if (currToken == "CASE") {
+
+	}
+	if (currToken == "BEGIN") {
+
+	}
+	return 0;
+}
+
+/*
+<while statement>	::=	while   <expression>   do   < compound statement>
+	// Note: this language uses "begin" and "end" to indicate blocks
+	// of code rather than the curly brackets, '{' and '}', used in
+	// other languages.
+*/
+int parser::whileStatmentRule() {
+	//currToken will be pointed at the correct spot
+	if (expressionRule() != 0) {
+		error << "SYNTAX ERROR! INVALID EXPRESSION. Failed in parser::whileStatmentRule" << std::endl;
 		return -1;
 	}
 	else {
-		//check for <structured statement>
+		if (currToken != "DO") {
+			error << "SYNTAX ERROR! MISSING \"DO\" TO COMPLETE DECLARING A WHILE LOOP. Failed in parser::whileStatmentRule" << std::endl;
+			std::cout << "SYNTAX ERROR! WHILE LOOP MUST USE INCLUDE THE WORD \"DO\"." << std::endl;
+			return -1;
+		}
 	}
-
+	return 0;
 }
 
 /*
@@ -620,7 +675,6 @@ int parser::variableRule() {
 				error << "SYNTAX ERROR! INVALID ARRAY VAR. Failed in arser::variableRule()" << std::endl;
 				std::cout << "SYNTAX ERROR!INVALID ARRAY VAR." << std::endl;
 			}
-			//now check for an indexed var
 		}
 		else {
 			return 0;
@@ -655,6 +709,9 @@ int parser::indexedVarRule() {
 */
 int parser::arrayIdxRule() {
 	//if currToken is "]" then return 0
+	if (currToken == "]") {
+		return 0;
+	}
 	getNextToken();
 	if (currToken == "]") {
 		getNextToken();
@@ -668,10 +725,19 @@ int parser::arrayIdxRule() {
 			return -1;
 		}
 		else {
-
+			getNextToken();
+			if (expressionRule() != 0) {
+				error << "SYNTAX ERROR! MALFORMED EXPRESSION. Failed in parser::arrayIdxRule" << std::endl;
+				return -1;
+			}
+			else {
+				if (arrayIdxRule() != 0) {
+					error << "SYNTAX ERROR! MALFORMED EXPRESSION. Failed in parser::arrayIdxRule" << std::endl;
+					return -1;
+				}
+			}
 		}
 	}
-	return 0;
 }
 
 /*
@@ -683,7 +749,33 @@ int parser::expressionRule() {
 		error << "SYNTAX ERROR! MALFORMED EXPRESSION. Failed in parser::expressionRule" << std::endl;
 		return -1;
 	}
-	return 0;
+	else {
+		//check for rel expression
+		if (relExpressionRule() != 0) {
+			//some error
+			return -1;
+		}
+	}
+return 0;
+}
+
+/*
+<rel exp>	::=	<rel op>   <simple expression>   |	 <empty-string>
+<rel op>	::=	=   | <>   | <   | <=   | >=   | >
+*/
+int parser::relExpressionRule() {
+	if (currToken == "<>" || currToken == "<" || currToken == "<=" || currToken == ">=" || currToken == ">") {
+		//there are rel ops
+		//now check for a vlid expression
+		getNextToken();
+		if (simpleExpressionRule() != 0) {
+			error << "SYNTAX ERROR! MALFORMED REL OP. Failed in parser::relExpressionRule" << std::endl;
+			return -1;
+		}
+	}
+	else {
+		return 0;
+	}
 }
 
 /*
@@ -702,8 +794,36 @@ int parser::simpleExpressionRule() {
 	}
 	else {
 		//check for an add term
+		getNextToken();
+		if (addTermRule() != 0) {
+			//then there is no add term.
+			return 0;
+		}
 	}
 	return 0;
+}
+
+/*
+<add term>	::=	<add op>   <term>   <add term>   |	 <empty-string>
+<add op>	::=	+   |   -   |   or
+*/
+int parser::addTermRule() {
+	//if there is no add opp then there are no more terms;
+	if (currToken != "-" && currToken != "+" && currToken != "OR") {
+		return 0;
+	}
+	//now test for a term
+	if (termRule() != 0) {
+		//some errors
+		return -1;
+	}
+	else {
+		getNextToken();
+		if (addTermRule() != 0) {
+			//some errorsd
+			return -1;
+		}
+	}
 }
 
 /*
@@ -744,7 +864,34 @@ int parser::factorRule() {
 		//if this is true then we have an int const
 		return 0;
 	}
-	//we still need to check for ( expression ) | NOT factor.
+	//now check for currtoken for "("
+	if (nextToken == "(") {
+		getNextToken();
+		getNextToken();
+		if (expressionRule() != 0) {
+			error << "SYNTAX ERROR! MALFORMED EXPRESSION. Failed in parser::factorRule" << std::endl;
+			return -1;
+		}
+		else {
+			if (currToken != ")") {
+				error << "SYNTAX ERROR! MISSING CLOSING PAREN. Failed in parser::factorRule" << std::endl;
+				std::cout << "SYNTAX ERROR! MISSING CLOSING PAREN." << std::endl;
+				return -1;
+			}
+			else {
+				return 0;
+			}
+		}
+	}
+	//now check for "NOT" expression
+	if (currToken == "NOT") {
+
+	}
+	//now check for variable
+	if (variableRule() != 0) {
+		error << "SYNTAX ERROR! INVALID VARIABLE. Failed in parser::factorRule" << std::endl;
+		return -1;
+	}
 	return 0;
 }
 
@@ -759,14 +906,6 @@ int parser::mulFactorRule() {
 <mul op>	::=	*   |   /   |   and
 */
 int mulOpRule() {
-	return 0;
-}
-
-/*
-<rel exp>	::=	<rel op>   <simple expression>   |	 <empty-string>
-<rel op>	::=	=   | <>   | <   | <=   | >=   | >
-*/
-int parser::relExpressionRule() {
 	return 0;
 }
 

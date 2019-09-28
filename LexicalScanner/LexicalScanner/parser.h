@@ -45,6 +45,9 @@ private:
 	int moreStatmentsRule();
 	int indexedVarRule();
 	int arrayIdxRule();
+	int addTermRule();
+	int structuredStatmentRule();
+	int whileStatmentRule();
 
 
 public:
