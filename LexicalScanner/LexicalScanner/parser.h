@@ -54,6 +54,8 @@ private:
 	int elseRule();
 	int writeRule();
 	int readRule();
+	int caseRule();
+	int casePartRule();
 
 
 public:

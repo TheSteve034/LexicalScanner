@@ -395,7 +395,6 @@ int parser::procDeclPartRule() {
 		return -1;
 	}
 	//now check for ";"
-	getNextToken();
 	if (currToken != ";") {
 		error << "SYNTAX ERROR! PROCEDURE DECL MUST END WITH \";\"" << std::endl;
 		return -1;
@@ -457,9 +456,20 @@ int parser::procDeclRule() {
 				//then make the check
 				getNextToken();
 				if (currToken != ";") {
-
+					error << "SYNTAX ERROR! MISSING \";\" IN A PROC DECL. Failed in parser::procDeclRule" << std::endl;
+					std::cout << "SYNTAX ERROR! MISSING \";\" IN A PROC DECL." << std::endl;
+					return -1;
 				}
 				//check for a block next
+				getNextToken();
+				if (blockRule() != 0) {
+					error << "SYNTAX ERROR! MAILFORMED BLOCK IN A PROC DECL. Failed in parser::procDeclRule" << std::endl;
+					std::cout << "SYNTAX ERROR! MAILFORMED BLOCK IN A PROC DECL." << std::endl;
+					return -1;
+				}
+				else {
+					return 0;
+				}
 			}
 		}
 	}
@@ -628,7 +638,7 @@ int parser::moreStatmentsRule() {
 int parser::statmentRule() {
 	//need to check for a structured statment first
 	//these start with "IF", "CASE", "BEGIN" or "WHILE"
-	if (currToken == "IF" || currToken == "WHILE" || currToken == "CASE" || currToken == "BEGIN") {
+	if (currToken == "IF" || currToken == "WHILE" || currToken == "SWITCH" || currToken == "BEGIN") {
 		//if I make it here then there are structure statments
 		if (structuredStatmentRule() != 0) {
 			error << "SYNTAX ERROR! MALFORMED STRUCTURED STATMENT. Failed in parser::statmentRule()" << std::endl;
@@ -674,8 +684,15 @@ int parser::structuredStatmentRule() {
 		}
 
 	}
-	if (currToken == "CASE") {
-
+	if (currToken == "SWITCH") {
+		if (caseRule() != 0) {
+			error << "SYNTAX ERROR! MALFORMED CASE STATMENT. Failed in parser::structuredStatmentRule" << std::endl;
+			return -1;
+		}
+		else {
+			return 0;
+		}
+		
 	}
 	if (currToken == "BEGIN") {
 		if (compoundStatmentRule() != 0) {
@@ -684,6 +701,115 @@ int parser::structuredStatmentRule() {
 		}
 		else {
 			return 0;
+		}
+	}
+}
+
+/*
+<case statement>	::=	switch (   <variable identifier>   )   <case part>
+*/
+int parser::caseRule() {
+	//currToken should be "SWITCH" at this point.
+	getNextToken();
+	if (currToken != "(") {
+		error << "SYNTAX ERROR! MALFORMED SWITCH STATMENT. MISSING OPEN PAREN. Failed in parser::caseRule" << std::endl;
+		std::cout << "SYNTAX ERROR! MALFORMED SWITCH STATMENT. MISSING OPEN PAREN. " + currToken << std::endl;
+		return -1;
+	}
+	else {
+		getNextToken();
+		if (variableRule() != 0) {
+			error << "SYNTAX ERROR! INVALID VARIABLE IN SWITCH STATMENT. Failed in parser::caseRule" << std::endl;
+			std::cout << "SYNTAX ERROR! INVALID VARIABLE IN SWITCH STATMENT. " + currToken << std::endl;
+			return -1;
+		}
+		else {
+			getNextToken();
+			if (currToken != ")") {
+				error << "SYNTAX ERROR! MALFORMED SWITCH STATMENT. MISSING CLOSING PAREN. Failed in parser::caseRule" << std::endl;
+				std::cout << "SYNTAX ERROR! MALFORMED SWITCH STATMENT. MISSING CLOSING PAREN. " + currToken << std::endl;
+				return -1;
+			}
+			else {
+				//test for case part.
+				getNextToken();
+				if (casePartRule() != 0) {
+					error << "SYNTAX ERROR! MALFORMED CASE/DEFAULT STATMENT. Failed in parser::caseRule()" << std::endl;
+					return -1;
+				}
+				else {
+					return 0;
+				}
+			}
+		}
+	}
+}
+
+/*
+<case part>	::=	case   <expression>   :   <compound statement>   <case part>   |
+default :   <compound statement>
+	// Each case will have a compound statement, even if there is
+	// only one statement to perform
+*/
+int parser::casePartRule() {
+	//first check for a deafualt case.
+	//this way if there is only a default then we do less work. otherwise this will allow us to catch the default at the end of the
+	//list of cases.
+	if (currToken == "DEFAULT") {
+		getNextToken();
+		if (currToken != ":") {
+			error << "SYNTAX ERROR! MISSING \":\" IN A DEFAULT STATMENT. Failed in parser::casePartRule" << std::endl;
+			std::cout << "SYNTAX ERROR! MISSING \":\" IN A DEFAULT STATMENT. " + currToken << std::endl;
+			return -1;
+		}
+		else {
+			//now check for a compound statment.
+			getNextToken();
+			if (compoundStatmentRule() != 0) {
+				error << "SYNTAX ERROR! INVALID COMPOUND STATMENT IN DEFAULT STATMENT. Failed in parser::casePartRule" << std::endl;
+				std::cout << "SYNTAX ERROR! INVALID COMPOUND STATMENT IN DEFAULT STATMENT." << std::endl;
+			}
+			else {
+				return 0;
+			}
+		}
+	}
+	if (currToken != "CASE") {
+		error << "SYNTAX ERROR! EACH CASE IN A SWITCH STATMENT MUST START WITH \"case\". Failed in parser::casePartRule" << std::endl;
+		std::cout << "SYNTAX ERROR! EACH CASE IN A SWITCH STATMENT MUST START WITH \"case\". " + currToken << std::endl;
+		return -1;
+	}
+	else {
+		getNextToken();
+		//new test for an expresion.
+		if (expressionRule() != 0) {
+			error << "SYNTAX ERROR! MALFORMED EXPRESSION IN A CASE STATMENT. Failed in parser::casePartRule()" << std::endl;
+			return -1;
+		}
+		else {
+			if (currToken != ":") {
+				error << "SYNTAX ERROR! MISSING \":\" IN A CASE STATMENT. Failed in parser::casePartRule" << std::endl;
+				std::cout << "SYNTAX ERROR! MISSING \":\" IN A CASE STATMENT. " + currToken << std::endl;
+				return -1;
+			}
+			else {
+				// now check for a compound statment.
+				getNextToken();
+				if (compoundStatmentRule() != 0) {
+					error << "SYNTAX ERROR! INVALID COMPOUND STATMENT IN DEFAULT STATMENT. Failed in parser::casePartRule" << std::endl;
+					std::cout << "SYNTAX ERROR! INVALID COMPOUND STATMENT IN DEFAULT STATMENT." << std::endl;
+				}
+				else {
+					//now check for another case statment.
+					if (casePartRule() != 0) {
+						error << "SYNTAX ERROR! MALFORMED CASE/DEFAULT STATMENT. Failed in parser::caseRule()" << std::endl;
+						return -1;
+					}
+					else {
+						return 0;
+					}
+				}
+			}
 		}
 	}
 }
