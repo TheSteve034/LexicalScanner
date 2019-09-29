@@ -108,10 +108,16 @@ int parser::blockRule() {
 			}
 		}
 		if (currToken == "PROCEDURE") {
-			//call proc method
+			if (procDeclPartRule() != 0) {
+				error << "SYNTAX ERROR! MALFORMED PROCEDURE DECL." << std::endl;
+				return -1;
+			}
 		}
 		if (currToken == "BEGIN" ) {
-			statmentPartRule();
+			if (statmentPartRule() != 0) {
+				error << "SYNTAX ERROR! MALFORMED STATMENT. Failed in parser::blockRule" << std::endl;
+				return -1;
+			}
 		}
 	}
 	return 0;
@@ -389,7 +395,21 @@ int parser::procDeclPartRule() {
 		return -1;
 	}
 	//now check for ";"
-	//now check if there is another proc decl part
+	getNextToken();
+	if (currToken != ";") {
+		error << "SYNTAX ERROR! PROCEDURE DECL MUST END WITH \";\"" << std::endl;
+		return -1;
+	}
+	else {
+		if (nextToken == "PROCEDURE") {
+			getNextToken();
+			if (procDeclPartRule() != 0) {
+				error << "SYNTAX ERROR. MALFORMED PROC DECL PART. Failed in procDeclPartRule" << std::endl;
+			}
+		}
+	}
+	getNextToken();
+	return 0;
 }
 
 /*
@@ -425,11 +445,21 @@ int parser::procDeclRule() {
 			return -1;
 		}
 		else {
-			//now look for a paramter list. Need to call a function for this.
+			//now look for a paramter list.
 			if (paramListsRule() != 0) {
 				error << "SYNTAX ERROR! MALFORMED PARAM LIST. Failed in parser::procDeclRule()" << std::endl;
 				std::cout << "SYNTAX ERROR! MALFORMED PARAM LIST. " << std::endl;
 				return -1;
+			}
+			else {
+				//check for ";"
+				//need to get nextToken()
+				//then make the check
+				getNextToken();
+				if (currToken != ";") {
+
+				}
+				//check for a block next
 			}
 		}
 	}
@@ -451,6 +481,9 @@ int parser::procDeclRule() {
 int parser::paramListsRule() {
 	//check if the next token is a type identifier
 	getNextToken();
+	if (currToken == ")") {
+		return 0;
+	}
 	if (currToken != "INT" && currToken != "BOOLEAN" && currToken != "STRING") {
 		error << "SYNTAX ERROR! EACH PARAMETER IN A PARMETER LIST MUST HAVE A VALID TYPE. Failed in parser::paramListsRule" << std::endl;
 		std::cout << "SYNTAX ERROR!EACH PARAMETER IN A PARMETER LIST MUST HAVE A VALID TYPE. " + currToken << std::endl;
@@ -460,7 +493,10 @@ int parser::paramListsRule() {
 		getNextToken();
 		//now call paramPassingRule()
 		if (paramPassingRule() != 0) {
-
+			error << "SYNTAX ERROR! MALFORMED PARAM PASSING. Failed in parser::paramListsRule" << std::endl;
+		}
+		else {
+			return 0;
 		}
 	}
 }
@@ -469,28 +505,41 @@ int parser::paramListsRule() {
 <param passing>	::=	<pass by value>   |	*   <pass by reference>
 */
 int parser::paramPassingRule() {
-
+	if (currToken == "*") {
+		getNextToken();
+		if (passByReference() != 0) {
+			error << "SYNTAX ERROR! INVALID PARAM. Failed in parser::paramPassingRule" << std::endl;
+			return -1;
+		}
+	}
+	else {
+		if (passByValue() != 0) {
+			error << "SYNTAX ERROR! INVALID PARAM. Failed in parser::paramPassingRule" << std::endl;
+			return -1;
+		}
+	}
+	return 0;
 }
 
 /*
 <pass by value>	::=	<identifier>   <more params>
 */
 int parser::passByValue() {
-
+	return 0;
 }
 
 /*
 <pass by reference>	::=	<identifier>   <more params>
 */
 int parser::passByReference() {
-
+	return 0;
 }
 
 /*
 <more params>	::=	,   <type identifier>   <param passing>   |	  )
 */
 int parser::moreParamsRule() {
-
+	return 0;
 }
 
 /*
@@ -621,7 +670,6 @@ int parser::structuredStatmentRule() {
 			return -1;
 		}
 		else {
-			getNextToken();
 			return 0;
 		}
 
