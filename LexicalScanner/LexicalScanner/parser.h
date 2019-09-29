@@ -29,6 +29,9 @@ private:
 	int procDeclRule();
 	int paramListsRule();
 	int paramPassingRule();
+	int passByValue();
+	int passByReference();
+	int moreParamsRule();
 	int statmentPartRule();
 	int compoundStatmentRule();
 	int statmentRule();
@@ -41,13 +44,16 @@ private:
 	int termRule();
 	int factorRule();
 	int mulFactorRule();
-	int mulOpRule();
 	int moreStatmentsRule();
 	int indexedVarRule();
 	int arrayIdxRule();
 	int addTermRule();
 	int structuredStatmentRule();
 	int whileStatmentRule();
+	int ifStatmentRule();
+	int elseRule();
+	int writeRule();
+	int readRule();
 
 
 public:

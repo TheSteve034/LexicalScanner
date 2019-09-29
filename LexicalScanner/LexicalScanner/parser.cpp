@@ -72,8 +72,19 @@ int parser::programRule() {
 			return -1;
 		}
 	}
-	return 0;
+	if (currToken == "_EOF") {
+		currToken = nextToken;
+	}
+	if (currToken != ".") {
+		error << "SYNTAX ERROR! PROGRAM MUST END WITH \".\"" << std::endl;
+		std::cout << "SYNTAX ERROR! PROGRAM MUST END WITH \".\" " + currToken << std::endl;
+	}
+	else {
+		std::cout << "Program parsed successfuly" << std::endl;
+		return 0;
+	}
 }
+
 /*
 <block>	::=	<variable declaration part>
 <procedure declaration part>
@@ -446,8 +457,40 @@ int parser::paramListsRule() {
 		return -1;
 	}
 	else {
+		getNextToken();
 		//now call paramPassingRule()
+		if (paramPassingRule() != 0) {
+
+		}
 	}
+}
+
+/*
+<param passing>	::=	<pass by value>   |	*   <pass by reference>
+*/
+int parser::paramPassingRule() {
+
+}
+
+/*
+<pass by value>	::=	<identifier>   <more params>
+*/
+int parser::passByValue() {
+
+}
+
+/*
+<pass by reference>	::=	<identifier>   <more params>
+*/
+int parser::passByReference() {
+
+}
+
+/*
+<more params>	::=	,   <type identifier>   <param passing>   |	  )
+*/
+int parser::moreParamsRule() {
+
 }
 
 /*
@@ -493,9 +536,12 @@ int parser::compoundStatmentRule() {
 				std::cout << "SYNTAX ERROR!BEGIN BLOCK MUST TERMINATE WITH THE WORD \"end\". " + currToken << std::endl;
 				return -1;
 			}
+			else {
+				getNextToken();
+				return 0;
+			}
 		}
 	}
-	return 0;
 }
 
 /*
@@ -507,6 +553,9 @@ int parser::moreStatmentsRule() {
 	//need to getNetToken
 	if (currToken == ";") {
 		getNextToken();
+		if (currToken == "END") {
+			return 0;
+		}
 		if (statmentRule() != 0) {
 			return -1;
 		}
@@ -557,20 +606,94 @@ int parser::structuredStatmentRule() {
 	//currToken will be a non terminal as we can branch from here without
 	//calling next token.
 	if (currToken == "WHILE") {
-		//getNetToken() and test for a valid while loop
-		whileStatmentRule();
+		if (whileStatmentRule() != 0) {
+			error << "SYNTAX ERROR! MALFORMED WHILE STATMENT. Failed in parser::structuredStatmentRule()" << std::endl;
+			return -1;
+		}
+		else {
+			return 0;
+		}
 		
 	}
 	if (currToken == "IF") {
+		if (ifStatmentRule() != 0) {
+			error << "SYNTAX ERROR! MALFORMED IF STATMENT. Failed in parser::structuredStatmentRule" << std::endl;
+			return -1;
+		}
+		else {
+			getNextToken();
+			return 0;
+		}
 
 	}
 	if (currToken == "CASE") {
 
 	}
 	if (currToken == "BEGIN") {
-
+		if (compoundStatmentRule() != 0) {
+			error << "SYNTAX ERROR! MALFORMED COMPOUND STATMENT. Failed parser::structuredStatmentRule" << std::endl;
+			return -1;
+		}
+		else {
+			return 0;
+		}
 	}
-	return 0;
+}
+
+/*
+<if statement>	::=	if   <expression>   then   <statement>   <else part>
+*/
+int parser::ifStatmentRule() {
+	if (expressionRule() != 0) {
+		error << "SYNTAX ERROR! MALFORMED IF STATMENT. Failed in parser::ifStatmentRule." << std::endl;
+		return -1;
+	}
+	else {
+		if (currToken != "THEN") {
+			error << "SYNTAX ERROR! MISSING THEN IN IF STATMENT. Failed in parser::ifStatmentRule" << std::endl;
+			std::cout << "SYNTAX ERROR! MISSING THEN IN IF STATMENT." << std::endl;
+			return -1;
+		}
+		else {
+			getNextToken();
+			//now check for a statment
+			if (statmentRule() != 0) {
+				error << "SYNTAX ERROR! MALFORMED STATMENT. Failed in parser::ifStatmentRule" << std::endl;
+				return -1;
+			}
+			else {
+				if (elseRule() != 0) {
+					error << "SYNTAX ERROR! MALFORMED ELSE STATMENT. Failed in parser::ifStatmentRule" << std::endl;
+					std::cout << "SYNTAX ERROR! MALFORMED ELSE STATMENT." << std::endl;
+					return -1;
+				}
+				else {
+					return 0;
+				}
+			}
+		}
+	}
+
+}
+
+/*
+<else part>	::=	else   <statement>   |	 <empty-string>
+*/
+int parser::elseRule() {
+
+	if (currToken == "ELSE") {
+		getNextToken();
+		if (statmentRule() != 0) {
+			error << "SYNTAX ERROR! MALFORMED STATMENT SECTION. Failed in parser::elseRule" << std::endl;
+			return -1;
+		}
+		else {
+			return 0;
+		}
+	}
+	else {
+		return 0;
+	}
 }
 
 /*
@@ -591,8 +714,22 @@ int parser::whileStatmentRule() {
 			std::cout << "SYNTAX ERROR! WHILE LOOP MUST USE INCLUDE THE WORD \"DO\"." << std::endl;
 			return -1;
 		}
+		else {
+			//now check for the compound statment
+			getNextToken();
+			if (currToken != "BEGIN") {
+				error << "SYNTAX ERROR! CONTENT OF WHILE LOOP MUST START WITH BGEIN. Failed in parser::whileStatmentRule()" << std::endl;
+			}
+			else{
+				if (compoundStatmentRule() != 0) {
+					error << "SYNTAX ERROR! WHILE STATMNENT MUST HAVE A WELL FORMED COMPOUND STATMENT. Failed in parser::whileStatmentRule()" << std::endl;
+				}
+				else {
+					return 0;
+				}
+			}
+		}
 	}
-	return 0;
 }
 
 /*
@@ -601,6 +738,25 @@ int parser::whileStatmentRule() {
 */
 int parser::simpleStatmentRule() {
 	//this method will need to check for all the types of staments
+	//now check for a write call
+	if (currToken == "WRITE") {
+		if (writeRule() != 0) {
+			error << "SYNTAX ERROR! MALFORED WRITE CALL. Failed in parser::simpleStatmentRule." << std::endl;
+			return -1;
+		}
+		else {
+			return 0;
+		}
+	}
+	if (currToken == "READ") {
+		if (readRule() != 0) {
+			error << "SYNTAX ERROR! MALFORED READ CALL. Failed in parser::simpleStatmentRule." << std::endl;
+			return -1;
+		}
+		else {
+			return 0;
+		}
+	}
 	//assingment statment
 	if (assingmentStatmentRule() != 0) {
 		error << "MALFORMED SIMPLE STATMENT. Failed in parser::simpleStatmentRule" << std::endl;
@@ -608,6 +764,75 @@ int parser::simpleStatmentRule() {
 	}
 	else {
 		//check for procedure call
+	}
+}
+
+/*
+<write statement>	::=	write   (   <expression>   )
+
+	// Semantic note: For simplicity, all write statements will write
+	// only one value, a string or an integer. Booleans will not be
+	// written to the screen.
+*/
+int parser::writeRule() {
+	getNextToken();
+	if (currToken != "(") {
+		error << "MALFORMED WRITE STATMENT. Failed in parser::writeRule" << std::endl;
+		std::cout << "MALFORMED WRITE STATMENT. MISSING \"(\"." << std::endl;
+		return -1;
+	}
+	else {
+		getNextToken();
+		if (expressionRule() != 0) {
+			error << "SYNTAX ERROR! MALFORMED EXPRESSION. Failed in parser::writeRule" << std::endl;
+			return -1;
+		}
+		else {
+			if (currToken != ")") {
+				error << "SYNTAX ERROR! MISSING CLOSING PAREN. Failed in parser::writeRule" << std::endl;
+				std::cout << "SYNTAX ERROR! MISSING CLOSING PAREN." << std::endl;
+				return -1;
+			}
+			else {
+				getNextToken();
+				return 0;
+			}
+		}
+	}
+}
+
+/*
+<read statement>	::=	read   (   <variable>   )
+	// Semantic note: For simplicity, all read statements will read only
+	// one value, a string or an integer. Booleans cannot be read from
+	// the keyboard.
+*/
+int parser::readRule() {
+	getNextToken();
+	if (currToken != "(") {
+		error << "MALFORMED READ STATMENT. Failed in parser::readRule" << std::endl;
+		std::cout << "MALFORMED READ STATMENT. MISSING \"(\"." << std::endl;
+		return -1;
+	}
+	else {
+		getNextToken();
+		if (variableRule() != 0) {
+			error << "MALFORMED READ STATMENT. Failed in parser::readRule" << std::endl;
+			std::cout << "INVALID VARIABLE. MISSING \"(\"." << std::endl;
+			return -1;
+		}
+		else {
+			getNextToken();
+			if (currToken != ")") {
+				error << "MALFORMED READ STATMENT. Failed in parser::readRule" << std::endl;
+				std::cout << "MALFORMED READ STATMENT. MISSING \")\"." << std::endl;
+				return -1;
+			}
+			else {
+				getNextToken();
+				return 0;
+			}
+		}
 	}
 }
 
@@ -813,6 +1038,7 @@ int parser::addTermRule() {
 		return 0;
 	}
 	//now test for a term
+	getNextToken();
 	if (termRule() != 0) {
 		//some errors
 		return -1;
@@ -837,6 +1063,10 @@ int parser::termRule() {
 	}
 	else {
 		//check for a mul factor. It may not be here. Use nextToken.
+		if (mulFactorRule() != 0) {
+			error << "SYNTAX ERROR! MALFORMED MUL FACTOR. Failed arser::termRule" << std::endl;
+			return -1;
+		}
 	}
 	return 0;
 }
@@ -857,6 +1087,7 @@ int parser::factorRule() {
 			return -1;
 		}
 		else {
+			getNextToken();
 			return 0; //it is a well formed string const.
 		}
 	}
@@ -897,18 +1128,29 @@ int parser::factorRule() {
 
 /*
 <mul factor>	::=	<mul op>   <factor>   <mul factor>   |	 <empty-string>
-*/
-int parser::mulFactorRule() {
-	return 0;
-}
-
-/*
 <mul op>	::=	*   |   /   |   and
 */
-int mulOpRule() {
+int parser::mulFactorRule() {
+	if (nextToken != "*" && nextToken != "/" && nextToken != "AND") {
+		//there are no mul ops return 0;
+		return 0;
+	}
+	else {
+		getNextToken();
+		getNextToken();
+		if (factorRule() != 0) {
+			error << "SYNTAX ERROR! MALFORMED FACTOR. Failed in parser::mulFactorRule" << std::endl;
+			return -1;
+		}
+		else {
+			if (mulFactorRule() != 0) {
+				error << "SYNTAX ERROR! MALFORMED MUL OP. Failed in parser::mulFactorRule" << std::endl;
+				return -1;
+			}
+		}
+	}
 	return 0;
 }
-
 
 int parser::parseFile() {
 	getNextToken();
