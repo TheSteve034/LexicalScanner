@@ -535,6 +535,18 @@ int parser::paramPassingRule() {
 <pass by value>	::=	<identifier>   <more params>
 */
 int parser::passByValue() {
+	if(!sc.isId(currToken)) {
+		error << "SYNTAX ERROR! INVALID IDENTIFIER. Failed in parser::passByValue" << std::endl;
+		return -1;
+	}
+	else {
+		getNextToken();
+		if (moreParamsRule() != 0) {
+			error << "SYNTAX ERROR! INVALID VAR IN PARAM LIST. Failed in parser::passByValue" << std::endl;
+			std::cout << "SYNTAX ERROR. INVALID VARIABLE. " + currToken << std::endl;
+			return -1;
+		}
+	}
 	return 0;
 }
 
@@ -542,6 +554,20 @@ int parser::passByValue() {
 <pass by reference>	::=	<identifier>   <more params>
 */
 int parser::passByReference() {
+	//we are looking at what should be the var right now
+	if (variableRule() != 0) {
+		error << "SYNTAX ERROR! INVALID VAR IN PARAM LIST. Failed in parser::passByReference" << std::endl;
+		std::cout << "SYNTAX ERROR. INVALID VARIABLE. " + currToken << std::endl;
+		return -1;
+	}
+	else {
+		getNextToken();
+		if (moreParamsRule() != 0) {
+			error << "SYNTAX ERROR! INVALID VAR IN PARAM LIST. Failed in parser::passByReference" << std::endl;
+			std::cout << "SYNTAX ERROR. INVALID VARIABLE. " + currToken << std::endl;
+			return -1;
+		}
+	}
 	return 0;
 }
 
@@ -549,6 +575,29 @@ int parser::passByReference() {
 <more params>	::=	,   <type identifier>   <param passing>   |	  )
 */
 int parser::moreParamsRule() {
+	if (currToken == ")") {
+		return 0;
+	}
+	if (currToken != ",") {
+		error << "SYNTAX ERROR! EACH PARAM NEEDS TO BE SEPERATED BY \",\". Failed in parser::moreParamsRule." << std::endl;
+		std::cout << "SYNTAX ERROR! EACH PARAM NEEDS TO BE SEPERATED BY \",\". " + currToken << std::endl;
+		return -1;
+	}
+	else {
+		getNextToken();
+		if (currToken != "INT" && currToken != "BOOLEAN" && currToken != "STRING") {
+			error << "SYNTAX ERROR! EACH PARAMETER IN A PARMETER LIST MUST HAVE A VALID TYPE. Failed in parser::paramListsRule" << std::endl;
+			std::cout << "SYNTAX ERROR!EACH PARAMETER IN A PARMETER LIST MUST HAVE A VALID TYPE. " + currToken << std::endl;
+			return -1;
+		}
+		else {
+			getNextToken();
+			if (paramPassingRule() != 0) {
+				error << "SYNTAX ERROR! INVALID PARAM LIST. Failed in parser::moreParamsRule" << std::endl;
+				return -1;
+			}
+		}
+	}
 	return 0;
 }
 
@@ -1101,6 +1150,7 @@ int parser::procedureCallRule() {
 */
 int parser::argListRule() {
 	if (currToken == ")") {
+		getNextToken();
 		return 0;
 	}
 	if (expressionRule() != 0) {
