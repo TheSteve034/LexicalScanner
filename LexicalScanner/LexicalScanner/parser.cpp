@@ -932,12 +932,17 @@ int parser::simpleStatmentRule() {
 		}
 	}
 	//assingment statment
-	if (assingmentStatmentRule() != 0) {
-		error << "MALFORMED SIMPLE STATMENT. Failed in parser::simpleStatmentRule" << std::endl;
-		return -1;
+	if (nextToken == ":=") {
+		if (assingmentStatmentRule() != 0) {
+			error << "MALFORMED SIMPLE STATMENT. Failed in parser::simpleStatmentRule" << std::endl;
+			return -1;
+		}
 	}
 	else {
-		//check for procedure call
+		if (procedureCallRule() != 0) {
+			error << "MALFORMED PROC CALL. Failed in parser::simpleStatmentRule" << std::endl;
+			return -1;
+		}
 	}
 }
 
@@ -1052,6 +1057,93 @@ int parser::assingmentStatmentRule() {
 		}
 	}
 	return 0;
+}
+
+/*
+<procedure call>	::=	<procedure identifier>   (   <arg list>
+
+	// Using the example procedures declared above we could have:
+	//       MYPROCEDURE(bob[2,-1], "Merrily we go along");
+	//       myprocedure(num1, string1);
+	// However the following won't work:
+	//       myProcedure(3, "So sorry, so sad...");
+	// in this case the first argument is not a reference to a
+	// memory location.
+*/
+int parser::procedureCallRule() {
+ 	if (!sc.isId(currToken)) {
+		error << "SYNTAX ERROR! PROC CALL MUST START WITH A VARIABLE. Failed in parser::procedureCallRule" << std::endl;
+		std::cout << "SYNTAX ERROR! PROC CALL MUST START WITH A VARIABLE. " + currToken << std::endl;
+		return -1;
+	}
+	else {
+		getNextToken();
+		if (currToken != "(") {
+			error << "SYNTAX ERROR! MISSING OPENING PAREN. Failed in parser::procedureCallRule" << std::endl;
+			std::cout << "SYNTAX ERROR! MISSING OPENING PAREN." << std::endl;
+			return -1;
+		}
+		else {
+			getNextToken();
+			if (argListRule() != 0) {
+				error << "SYNTAX ERROR! MALFORMED ARG LIST IN A PROC CALL. Failed in parser::procedureCallRule" << std::endl;
+				return -1;
+			}
+			else {
+				return 0;
+			}
+		}
+	}
+}
+
+/*
+<arg list>	::=	<expression>   <more args>   |	 )
+*/
+int parser::argListRule() {
+	if (currToken == ")") {
+		return 0;
+	}
+	if (expressionRule() != 0) {
+		error << "SYNTAX ERROR! MALFORMED STATMENT IN A PROC CALL. Failed in parser::argListRule" << std::endl;
+		return -1;
+	}
+	else {
+		if (moreArgListRule() != 0) {
+			error << "SYNTAX ERROR! MALFORMED ARG LIST IN A PORC CALL. Failed in parser::argListRule" << std::endl;
+			return -1;
+		}
+		else {
+			return 0;
+		}
+	} 
+}
+
+/*
+<more args>	::=	,   <expression>   <more args>   |	 )
+*/
+int parser::moreArgListRule() {
+	if (currToken == ")") {
+		getNextToken();
+		return 0;
+	}
+	if (currToken != ",") {
+		error << "SYNTAX ERROR! MISSING \",\" IN A PROC ARG LIST. Failed in parser::moreArgListRule()";
+		std::cout << "SYNTAX ERROR! MISSING \",\" IN A PROC ARG LIST." << std::endl;
+		return -1;
+	}
+	else {
+		getNextToken();
+		if (expressionRule() != 0) {
+			error << "SYNTAX ERROR! MALFORMED STATMENT IN A PROC ARG LIST. Failed in parser::moreArgListRule" << std::endl;
+			return -1;
+		}
+		else {
+			if (moreArgListRule() != 0) {
+				error << "SYNTAX ERROR! MALFORMED ARG LIST IN A PORC CALL. Failed in parser::moreArgListRule" << std::endl;
+				return -1;
+			}
+		}
+	}
 }
 
 /*
@@ -1290,7 +1382,14 @@ int parser::factorRule() {
 	}
 	//now check for "NOT" expression
 	if (currToken == "NOT") {
-
+		getNextToken();
+		if (factorRule() != 0) {
+			error << "SYNTAX ERROR! MALFORMED FACTOR. Failed in parser::factorRule" << std::endl;
+			return -1;
+		}
+		else {
+			return 0;
+		}
 	}
 	//now check for variable
 	if (variableRule() != 0) {
@@ -1329,7 +1428,7 @@ int parser::mulFactorRule() {
 int parser::parseFile() {
 	getNextToken();
 	if (programRule() != 0) {
-		//error << "SYNTAX ERROR. Call to program rule failed in function parser::parseFile().";
+		error << "SYNTAX ERROR. Call to program rule failed in function parser::parseFile().";
 		std::cout << "SYNTAX ERROR! CANNOT PARSE FILE." << std::endl;
 		return -1;
 	}

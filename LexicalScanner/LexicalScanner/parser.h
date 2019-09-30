@@ -37,6 +37,9 @@ private:
 	int statmentRule();
 	int simpleStatmentRule();
 	int assingmentStatmentRule();
+	int procedureCallRule();
+	int argListRule();
+	int moreArgListRule();
 	int variableRule();
 	int expressionRule();
 	int simpleExpressionRule();
