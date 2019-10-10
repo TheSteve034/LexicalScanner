@@ -35,5 +35,8 @@
     <ClInclude Include="parser.h">
       <Filter>Source Files</Filter>
     </ClInclude>
+    <ClInclude Include="symTable.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

@@ -161,6 +161,7 @@
     <ClInclude Include="Header.h" />
     <ClInclude Include="parser.h" />
     <ClInclude Include="scanner.h" />
+    <ClInclude Include="symTable.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
