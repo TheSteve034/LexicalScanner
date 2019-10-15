@@ -4,7 +4,7 @@
 
 std::regex idRE("[A-Z][A-Z 0-9 _]*");
 std::regex singelLineCommenetRE("\/\/.*");
-std::regex intConstantRE("[1-9][0-9]*");
+std::regex intConstantRE("-?[1-9][0-9]*");
 
 std::vector<std::string> scanner::getTokens(std::string filePath) {
 	std::ifstream file(filePath.c_str(), std::ifstream::in);
@@ -13,8 +13,9 @@ std::vector<std::string> scanner::getTokens(std::string filePath) {
 
 	bool inSLcomment = false;
 	bool inMLcomment = false;
-
 	bool inStringConst = false;
+	bool inNegativeIntConst = false;
+
 	int tempI;
 	while (std::getline(file, line)) {
 		std::string token = "";
@@ -39,6 +40,24 @@ std::vector<std::string> scanner::getTokens(std::string filePath) {
 			}
 			if (inMLcomment == true) {
 				continue;
+			}
+
+			//handeling negative ints
+			if (inNegativeIntConst == true) {
+				if (std::isdigit(line[i])) {
+					token += line[i];
+					if (i + 1 == lineLength) {
+						tokens.push_back(token);
+						inNegativeIntConst = false;
+						token = "";
+					}
+					continue;
+				}
+				else {
+					tokens.push_back(token);
+					token = "";
+					inNegativeIntConst = false;
+				}
 			}
 			//handeling strings
 			tempI = i;
@@ -140,6 +159,18 @@ std::vector<std::string> scanner::getTokens(std::string filePath) {
 						token = line[i];
 						tokens.push_back(token);
 						token = "";
+					}
+					continue;
+				}
+				//the case where the next token may be a negative number.
+				if (line[i] == '-'&& std::isdigit(line[i+1])) {
+					inNegativeIntConst = true;
+					if (token.empty()) {
+						token = line[i];
+					}
+					else {
+						tokens.push_back(token);
+						token = line[i];
 					}
 					continue;
 				}

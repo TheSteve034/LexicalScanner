@@ -156,6 +156,7 @@
     <ClCompile Include="compiler.cpp" />
     <ClCompile Include="parser.cpp" />
     <ClCompile Include="scanner.cpp" />
+    <ClCompile Include="symTable.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Header.h" />

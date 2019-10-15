@@ -5,6 +5,16 @@ void parser::getTokenList(std::vector<std::string> scanedTokens) {
 	return;
 }
 
+void parser::resetSymVars() {
+	aStart = 0;
+	aEnd = 0;
+	aSize = 0;
+	symIds.clear();
+	storageType = "";
+	baseType = "";
+	st.setArraySize(0);
+}
+
 void parser::getNextToken() {
 	if (tokens[tokenCount] == "_EOF") {
 		currToken = tokens[tokenCount];
@@ -49,6 +59,14 @@ int parser::programRule() {
 	else {
 		//check the next token to see if it is an identifier
 		if(sc.isId(nextToken)) {
+			//add the program name to the symtable
+			symTable::symbolInfo *var = new symTable::symbolInfo();
+			var->name = nextToken;
+			var->storageType = "program";
+			var->baseType = "string";
+			var->scope = st.getLevel();
+			st.insertSymbol(var);
+			st.printInsertedVar(var);
 			createFiles(nextToken);
 		}
 		else {
@@ -113,7 +131,7 @@ int parser::blockRule() {
 				return -1;
 			}
 		}
-		if (currToken == "BEGIN" ) {
+ 		if (currToken == "BEGIN" ) {
 			if (statmentPartRule() != 0) {
 				error << "SYNTAX ERROR! MALFORMED STATMENT. Failed in parser::blockRule" << std::endl;
 				return -1;
@@ -131,6 +149,8 @@ int parser::varDecRule() {
 	// <name> : <type>, repeate | ;
 	if (sc.isId(currToken)) {
 		//call moreDeclsRule;
+		//add the var to the symbol table. We need to collect all the infomration we can here and then wait for all the type information to be returned.
+		symIds.push_back(currToken);
 		getNextToken();
 		if( moreDeclsRule() != 0) {
 			error << "SYNTAX ERROR! INVALID VARIABLE DECLARATION. Failed in parser::varDeclRule." << std::endl;
@@ -141,12 +161,18 @@ int parser::varDecRule() {
 		error << "SYNTAX ERROR! INVALID VARIABLE DECLARATION IN A VAR BLOCK. Failed in parser::varDecRule" << std::endl;
 		return -1;
 	}
-
-	//getNextToken();
+	if (storageType != "ARRAY") {
+		st.insertSimpleSyms(symIds, storageType, baseType);
+		resetSymVars();
+	}
 	//need to handle arrays here
 	if (currToken == "ARRAY") {
 		getNextToken();
 		arrayDefRule();
+		//insert the array var to sym table
+		st.insertSimpleSyms(symIds, storageType, baseType);
+		resetSymVars();
+		//afte every insert clean out the global vars.
 	}
 	
 	if (currToken == "BEGIN" || currToken == "PROCEDURE") {
@@ -175,7 +201,7 @@ int parser::varDecRule() {
 /*
  : <type> | , <variable declaration>
 */
-int parser::moreDeclsRule() {
+ int parser::moreDeclsRule() {
 	/* To options here. 1st case is just one var in that case we are looking for curre token to be ":"
 	2ns case list of vars, in this case we are looking for ","*/
 	if (currToken != ":" && currToken != ",") {
@@ -193,6 +219,8 @@ int parser::moreDeclsRule() {
 			return -1;
 		}
 		else {
+			storageType = currToken;
+			baseType = currToken;
 			return 0;
 		}
 	}
@@ -204,20 +232,20 @@ int parser::moreDeclsRule() {
 	}
 }
 
-int parser::moreVarsRule() {
-	if (!sc.isId(currToken)) {
-		error << "SYNTAX ERROR! INVALID IDENTIFIER. Failed in parser::moreVarsRule()" << std::endl;
-		std::cout << "SYNTAX ERROR! INVALID IDENTIFIER IN A VAR BLOCK : " + currToken << std::endl;
-		return -1;
-	}
-	else {
-		getNextToken();
-		if (moreDeclsRule() != 0) {
-			error << "SYNTAX ERROR! INVALID VARIABLE DECLARATION. Failed in parser::moreVarsRule." << std::endl;
-			return -1;
-		}
-	}
-}
+//int parser::moreVarsRule() {
+//	if (!sc.isId(currToken)) {
+//		error << "SYNTAX ERROR! INVALID IDENTIFIER. Failed in parser::moreVarsRule()" << std::endl;
+//		std::cout << "SYNTAX ERROR! INVALID IDENTIFIER IN A VAR BLOCK : " + currToken << std::endl;
+//		return -1;
+//	}
+//	else {
+//		getNextToken();
+//		if (moreDeclsRule() != 0) {
+//			error << "SYNTAX ERROR! INVALID VARIABLE DECLARATION. Failed in parser::moreVarsRule." << std::endl;
+//			return -1;
+//		}
+//	}
+//}
 /*
 <array type>	::=	array   [   <index range>   of   <simple type>
 
@@ -257,6 +285,7 @@ int parser::arrayDefRule() {
 					std::cout << "SYNTAX ERROR! UNKNOWN TYPE " + currToken << std::endl;
 				}
 				else {
+					baseType = currToken;
 					return 0;
 				}
 			}
@@ -280,6 +309,8 @@ int parser::indexRangeRule() {
 			return -1;
 		}
 		else {
+			//capture array starting index
+			aStart = std::stoi(currToken);
 			//now check for ".."
 			getNextToken();
 			if (currToken != "..") {
@@ -297,6 +328,10 @@ int parser::indexRangeRule() {
 						std::cout << "SYNTAX ERROR! ONLY INT CONSTANTS ARE ALLOWED AS INDEX RANGE VALULES. " + currToken << std::endl;
 						return -1;
 					}
+					//capture end inex valule and calculate it's value;
+					aEnd = std::stoi(currToken);
+					aSize = aSize + st.calucalteIndexRange(aStart, aEnd);
+					st.setArraySize(aSize);
 				}
 				else {
 					//it wasn't a signed int const. Now check to see if it is an int const.
@@ -319,6 +354,7 @@ int parser::indexRangeRule() {
 		}
 		else {
 			//now check for ".."
+			aStart = std::stoi(currToken);
 			getNextToken();
 			if (currToken != "..") {
 				error << "SYNTAX ERROR! INVALID TOKEN. Failed in parser::indexRangeRule" << std::endl;
@@ -335,6 +371,9 @@ int parser::indexRangeRule() {
 						std::cout << "SYNTAX ERROR! ONLY INT CONSTANTS ARE ALLOWED AS INDEX RANGE VALULES. " + currToken << std::endl;
 						return -1;
 					}
+					aEnd = std::stoi(currToken);
+					aSize = aSize + st.calucalteIndexRange(aStart, aEnd);
+					st.setArraySize(aSize);
 				}
 				else {
 					//it wasn't a signed int const. Now check to see if it is an int const.
@@ -343,6 +382,9 @@ int parser::indexRangeRule() {
 						std::cout << "SYNTAX ERROR! ONLY INT CONSTANTS ARE ALLOWED AS INDEX RANGE VALULES. " + currToken << std::endl;
 						return -1;
 					}
+					aEnd = std::stoi(currToken);
+					aSize = aSize + st.calucalteIndexRange(aStart, aEnd);
+					st.setArraySize(aSize);
 				}
 			}
 		}
@@ -1407,6 +1449,7 @@ int parser::factorRule() {
 			return 0; //it is a well formed string const.
 		}
 	}
+	//TODO: can't deal with --1
 	if (sc.isIntConst(currToken)) {
 		//if this is true then we have an int const
 		return 0;
