@@ -12,6 +12,7 @@ void parser::resetSymVars() {
 	symIds.clear();
 	storageType = "";
 	baseType = "";
+	passType = "value";
 	st.setArraySize(0);
 }
 
@@ -162,7 +163,7 @@ int parser::varDecRule() {
 		return -1;
 	}
 	if (storageType != "ARRAY") {
-		st.insertSimpleSyms(symIds, storageType, baseType);
+		st.insertSimpleSyms(symIds, storageType, baseType, passType);
 		resetSymVars();
 	}
 	//need to handle arrays here
@@ -170,7 +171,7 @@ int parser::varDecRule() {
 		getNextToken();
 		arrayDefRule();
 		//insert the array var to sym table
-		st.insertSimpleSyms(symIds, storageType, baseType);
+		st.insertSimpleSyms(symIds, storageType, baseType, passType);
 		resetSymVars();
 		//afte every insert clean out the global vars.
 	}
@@ -478,6 +479,11 @@ int parser::procDeclRule() {
 		return -1;
 	}
 	else {
+		//capture the ID of the proc in preperation for adding it to the sym table 
+		symIds.push_back(currToken);
+		//now add proc ID to the sym table.
+		st.insertProc(symIds);
+		resetSymVars();
 		//now check for a "("
 		getNextToken();
 		if (currToken != "(") {
@@ -542,6 +548,11 @@ int parser::paramListsRule() {
 		return -1;
 	}
 	else {
+		//any parameter is a scope level lower than the proc it's self.
+		st.setLevel(st.getLevel() + 1);
+		//we can also set the storage type and base type.
+		storageType = currToken;
+		baseType = currToken;
 		getNextToken();
 		//now call paramPassingRule()
 		if (paramPassingRule() != 0) {
@@ -558,6 +569,7 @@ int parser::paramListsRule() {
 */
 int parser::paramPassingRule() {
 	if (currToken == "*") {
+		passType = "Reference"; 
 		getNextToken();
 		if (passByReference() != 0) {
 			error << "SYNTAX ERROR! INVALID PARAM. Failed in parser::paramPassingRule" << std::endl;
@@ -582,6 +594,9 @@ int parser::passByValue() {
 		return -1;
 	}
 	else {
+		symIds.push_back(currToken);
+		st.insertSimpleSyms(symIds, storageType, baseType, passType);
+		resetSymVars();
 		getNextToken();
 		if (moreParamsRule() != 0) {
 			error << "SYNTAX ERROR! INVALID VAR IN PARAM LIST. Failed in parser::passByValue" << std::endl;
@@ -603,6 +618,9 @@ int parser::passByReference() {
 		return -1;
 	}
 	else {
+		symIds.push_back(currToken);
+		st.insertSimpleSyms(symIds, storageType, baseType, passType);
+		resetSymVars();
 		getNextToken();
 		if (moreParamsRule() != 0) {
 			error << "SYNTAX ERROR! INVALID VAR IN PARAM LIST. Failed in parser::passByReference" << std::endl;
@@ -633,6 +651,8 @@ int parser::moreParamsRule() {
 			return -1;
 		}
 		else {
+			storageType = currToken;
+			baseType = currToken;
 			getNextToken();
 			if (paramPassingRule() != 0) {
 				error << "SYNTAX ERROR! INVALID PARAM LIST. Failed in parser::moreParamsRule" << std::endl;

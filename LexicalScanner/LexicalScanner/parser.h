@@ -19,6 +19,7 @@ private:
 	int aSize = 0;
 	std::string storageType = "";
 	std::string baseType = "";
+	std::string passType = "Value";
 	std::vector<std::string> symIds = {};
 	std::string currToken = "";
 	std::string nextToken = "";

@@ -25,14 +25,17 @@ void symTable::insertSymbol(symbolInfo* var) {
 		block[pos]->baseType = var->baseType;
 		block[pos]->scope = var->scope;
 		block[pos]->arrayDimensions = var->arrayDimensions;
+		block[pos]->passType = var->passType;
 		block[pos]->next = NULL;
 	}
 	else {
+		//here we need to check if there are mulDefs. Meaning that the same symbol is defined twice or more in the same scope. 
 		symbolInfo* newNode = new symbolInfo();
 		newNode->name = var->name;
 		newNode->storageType = var->storageType;
 		newNode->baseType = var->baseType;
 		newNode->scope = var->scope;
+		newNode->passType = var->passType;
 		newNode->arrayDimensions = var->arrayDimensions;
 
 		// pointer swap
@@ -87,8 +90,9 @@ void symTable::setLevel(int level) {
 /*
 This method is used to insert the following var types:
 INT STRING and BOOLEANS
+this method can be used to to insert a list of vars with the same type.
 */
-void symTable::insertSimpleSyms(std::vector<std::string> Ids, std::string sType, std::string bType) {
+void symTable::insertSimpleSyms(std::vector<std::string> Ids, std::string sType, std::string bType, std::string passType) {
 	if (Ids.empty()) {
 		return;
 	}
@@ -98,10 +102,26 @@ void symTable::insertSimpleSyms(std::vector<std::string> Ids, std::string sType,
 		var->storageType = sType;
 		var->baseType = bType;
 		var->scope = level;
+		var->passType = passType;
 		var->arrayDimensions = arraySize;
 		insertSymbol(var);
 		printInsertedVar(var);
 	}
+}
+
+/*
+add a procedure definition to the sym table.
+*/
+void symTable::insertProc(std::vector<std::string> Ids) {
+	if (Ids.empty()) {
+		return;
+	}
+	struct symTable::symbolInfo* var = new symbolInfo();
+	var->name = Ids[0];
+	var->storageType = "Procedure";
+	var->baseType = "Procedure";
+	insertSymbol(var);
+	printInsertedVar(var);
 }
 
 int symTable::calucalteIndexRange(int start, int end) {
@@ -157,4 +177,6 @@ void symTable::printInsertedVar(struct symbolInfo* var) {
 	std::cout << "Storage Type: " +var->storageType << std::endl;
 	std::cout << "Scope: " + std::to_string(var->scope) << std::endl;
 	std::cout << "Array Dimensions: " + std::to_string(var->arrayDimensions) << std::endl;
+	std::cout << "Pass type: " + var->passType << std::endl;
+	std::cout << std::endl;
 }
