@@ -131,6 +131,15 @@ int parser::blockRule() {
 				error << "SYNTAX ERROR! MALFORMED PROCEDURE DECL." << std::endl;
 				return -1;
 			}
+			else {
+				if (currToken != ";") {
+					error << "SYNTAX ERROR! MISSING \";\" AT END OF PROCEDURE DECLRATION. Failed in parser::blockRule";
+					return -1;
+				}
+				else {
+					getNextToken();
+				}
+			}
 		}
  		if (currToken == "BEGIN" ) {
 			if (statmentPartRule() != 0) {
@@ -442,15 +451,14 @@ int parser::procDeclPartRule() {
 		error << "SYNTAX ERROR! PROCEDURE DECL MUST END WITH \";\"" << std::endl;
 		return -1;
 	}
-	else {
-		if (nextToken == "PROCEDURE") {
-			getNextToken();
-			if (procDeclPartRule() != 0) {
-				error << "SYNTAX ERROR. MALFORMED PROC DECL PART. Failed in procDeclPartRule" << std::endl;
-			}
+	//now check for more procedures
+	if (nextToken == "PROCEDURE") {
+		getNextToken();
+		if (procDeclPartRule() != 0) {
+			error << "SYNTAX ERROR. MALFORMED PROC DECL PART. Failed in procDeclPartRule" << std::endl;
 		}
 	}
-	getNextToken();
+	//getNextToken();
 	return 0;
 }
 
@@ -482,6 +490,7 @@ int parser::procDeclRule() {
 		//capture the ID of the proc in preperation for adding it to the sym table 
 		symIds.push_back(currToken);
 		//now add proc ID to the sym table.
+		st.setLevel();
 		st.insertProc(symIds);
 		resetSymVars();
 		//now check for a "("
@@ -549,7 +558,7 @@ int parser::paramListsRule() {
 	}
 	else {
 		//any parameter is a scope level lower than the proc it's self.
-		st.setLevel(st.getLevel() + 1);
+		//st.setLevel();
 		//we can also set the storage type and base type.
 		storageType = currToken;
 		baseType = currToken;
@@ -707,6 +716,7 @@ int parser::compoundStatmentRule() {
 				return -1;
 			}
 			else {
+				st.moveLevelDown();
 				getNextToken();
 				return 0;
 			}

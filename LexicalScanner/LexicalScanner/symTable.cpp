@@ -83,8 +83,56 @@ int symTable::updateSymbol(std::string name, int scope, std::string sType, std::
 int symTable::getLevel() {
 	return level;
 }
-void symTable::setLevel(int level) {
-	this->level = this->level + level;
+
+/*
+we need to use the scope vector to make sure we move into the correct scope.  
+*/
+void symTable::setLevel() {	
+	if (this->level != 0) {
+		for (int i = 1; i < MAXSCOPECOUNT; i++) {
+			if (scope[i] != false) {
+				continue;
+			}
+			else {
+				level = i;
+				scope[i] = true;
+				break;
+			}
+		}
+		return;
+	}
+	if (this->level == 0 && scope[1] == false) {
+		this->level = 1;
+		scope[1] = true;
+		return;
+	}
+	else {
+		for (int i = 1; i < MAXSCOPECOUNT; i++) {
+			if (scope[i] != false) {
+				continue;
+			}
+			else {
+				level = i;
+				scope[i] = true;
+				break;
+			}
+		}
+	}
+	return;
+}
+
+void symTable::setFirstProc(bool val) {
+	firstProc = val;
+}
+
+bool symTable::getFirstProc() {
+	return firstProc;
+}
+
+void symTable::moveLevelDown() {
+	if (level > 0) {
+		level = level - 1;
+	}
 }
 
 /*
@@ -120,6 +168,12 @@ void symTable::insertProc(std::vector<std::string> Ids) {
 	var->name = Ids[0];
 	var->storageType = "Procedure";
 	var->baseType = "Procedure";
+	if (level - 1 == 0) {
+		var->scope = 0;
+	}
+	else {
+		var->scope = level - 1;
+	}
 	insertSymbol(var);
 	printInsertedVar(var);
 }
