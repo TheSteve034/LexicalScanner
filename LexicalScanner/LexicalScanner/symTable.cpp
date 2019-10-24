@@ -52,14 +52,19 @@ int symTable::searchForSymbol(std::string name, int scope, std::string sType, st
 	int chain = generateHash(name);
 
 	symbolInfo* temp = block[chain];
+	//this is the case where this is the first time this symbol is being inserted
+	if (temp == NULL) {
+		return 0;
+	}
 
 	while (temp != NULL) {
-		if (std::strcmp(temp->name.c_str(), name.c_str()) && std::strcmp(temp->storageType.c_str(), sType.c_str()) && std::strcmp(temp->baseType.c_str(), type.c_str()) && temp->scope == scope) {
-			return 0;
+		//if (std::strcmp(temp->name.c_str(), name.c_str()) && std::strcmp(temp->storageType.c_str(), sType.c_str()) && std::strcmp(temp->baseType.c_str(), type.c_str()) && temp->scope == scope) {
+		if(temp->name == name && temp->scope == level && temp->storageType == sType && temp->baseType == type) {
+			return -1;
 		}
 		temp = temp->next;
 	}
-	return -1;
+	return 0;
 }
 
 int symTable::deleteSymbol(std::string name, int scope, std::string sType, std::string type) {
@@ -140,9 +145,9 @@ This method is used to insert the following var types:
 INT STRING and BOOLEANS
 this method can be used to to insert a list of vars with the same type.
 */
-void symTable::insertSimpleSyms(std::vector<std::string> Ids, std::string sType, std::string bType, std::string passType) {
+int symTable::insertSimpleSyms(std::vector<std::string> Ids, std::string sType, std::string bType, std::string passType) {
 	if (Ids.empty()) {
-		return;
+		return 0;
 	}
 	for (auto& symbol : Ids) {
 		struct symTable::symbolInfo* var = new symbolInfo();
@@ -152,9 +157,13 @@ void symTable::insertSimpleSyms(std::vector<std::string> Ids, std::string sType,
 		var->scope = level;
 		var->passType = passType;
 		var->arrayDimensions = arraySize;
+		if (searchForSymbol(symbol,level,sType,bType) != 0) {
+			return -1;
+		}
 		insertSymbol(var);
-		printInsertedVar(var);
+		//printInsertedVar(var);
 	}
+	return 0;
 }
 
 /*
@@ -172,10 +181,10 @@ void symTable::insertProc(std::vector<std::string> Ids) {
 		var->scope = 0;
 	}
 	else {
-		var->scope = level - 1;
+		var->scope = level;
 	}
 	insertSymbol(var);
-	printInsertedVar(var);
+	//printInsertedVar(var);
 }
 
 int symTable::calucalteIndexRange(int start, int end) {
@@ -233,4 +242,26 @@ void symTable::printInsertedVar(struct symbolInfo* var) {
 	std::cout << "Array Dimensions: " + std::to_string(var->arrayDimensions) << std::endl;
 	std::cout << "Pass type: " + var->passType << std::endl;
 	std::cout << std::endl;
+}
+
+void symTable::printSymTable() {
+	std::cout << "SYMBOLS IN SYMBOL TABLE" << std::endl;
+	for (int i = 0; i < MAXSYMBOLCOUNT; i++) {
+		symbolInfo* temp = block[i];
+		if (temp == NULL) {
+			continue;
+		}
+		while (temp != NULL) {
+			std::cout << "Symbol Name: " + temp->name << std::endl;
+			std::cout << "Symbol Scope: " + temp->scope << std::endl;
+			std::cout << "Symbol Storage Type: " + temp->storageType << std::endl;
+			std::cout << "Symbol Base Type: " + temp->baseType << std::endl;
+			if (temp->storageType == "array") {
+				std::cout << "Symbol array size: " + temp->arrayDimensions << std::endl;
+			}
+			std::cout << "Symbol Pass Type: " + temp->passType << std::endl;
+			std::cout << std::endl;
+			temp = temp->next;
+		}
+	}
 }

@@ -37,8 +37,9 @@ public:
 	int deleteSymbol(std::string name, int scope, std::string sType, std::string type);
 	int updateSymbol(std::string name, int scope, std::string sType, std::string type);
 	int calucalteIndexRange(int start, int end);
-	void insertSimpleSyms(std::vector<std::string> Ids, std::string sType, std::string bType, std::string passType);
+	int insertSimpleSyms(std::vector<std::string> Ids, std::string sType, std::string bType, std::string passType);
 	void insertProc(std::vector<std::string> Ids);
 	void printInsertedVar(struct symbolInfo* var);
+	void printSymTable();
 };
 

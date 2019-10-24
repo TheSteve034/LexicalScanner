@@ -24,4 +24,10 @@ int main(int argc, char* argv[])
 	}
 	p.getTokenList(tokens);
 	p.parseFile();
+	if (argc == 3 ) {
+		std::string temp = argv[2];
+		if (temp == "p") {
+			p.printTable();
+		}
+	}
 }  

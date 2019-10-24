@@ -79,4 +79,5 @@ public:
 	//creates .asm and .err files
 	void createFiles(std::string progName);
 	int parseFile();
+	void printTable();
 };

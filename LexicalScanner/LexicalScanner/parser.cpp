@@ -67,7 +67,7 @@ int parser::programRule() {
 			var->baseType = "string";
 			var->scope = st.getLevel();
 			st.insertSymbol(var);
-			st.printInsertedVar(var);
+			//st.printInsertedVar(var);
 			createFiles(nextToken);
 		}
 		else {
@@ -172,7 +172,15 @@ int parser::varDecRule() {
 		return -1;
 	}
 	if (storageType != "ARRAY") {
-		st.insertSimpleSyms(symIds, storageType, baseType, passType);
+		if (st.insertSimpleSyms(symIds, storageType, baseType, passType) != 0) {
+			error << "SYNTAX ERROR! MULTIPLY DEFINED SYMBOL. Failed in parser::varDecRule" << std::endl;
+			std::cout << "SYNTAX ERROR! MULTIPLY DEFINED SYMBOL. ";
+			for (auto& sym : symIds) {
+			std::cout << sym + " ";
+			}
+			std::cout << std::endl;
+			return -1;
+		}
 		resetSymVars();
 	}
 	//need to handle arrays here
@@ -1548,11 +1556,16 @@ int parser::mulFactorRule() {
 	return 0;
 }
 
+void parser::printTable() {
+	st.printSymTable();
+}
+
 int parser::parseFile() {
 	getNextToken();
 	if (programRule() != 0) {
 		error << "SYNTAX ERROR. Call to program rule failed in function parser::parseFile().";
 		std::cout << "SYNTAX ERROR! CANNOT PARSE FILE." << std::endl;
+		std::cout << "See error log for failure trace." << std::endl;
 		return -1;
 	}
 	else {
