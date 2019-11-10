@@ -26,6 +26,7 @@ public:
 		struct symbolInfo* next = NULL;
 	} *block[MAXSYMBOLCOUNT];
 
+	symTable::symbolInfo* getSym(std::string id, int scope);
 	void insertSymbol(struct symbolInfo *var);
 	void setFirstProc(bool val);
 	bool getFirstProc();

@@ -27,6 +27,9 @@
     <ClCompile Include="symTable.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="codeGenerator.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Header.h">
@@ -39,6 +42,9 @@
       <Filter>Source Files</Filter>
     </ClInclude>
     <ClInclude Include="symTable.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="codeGenerator.h">
       <Filter>Source Files</Filter>
     </ClInclude>
   </ItemGroup>

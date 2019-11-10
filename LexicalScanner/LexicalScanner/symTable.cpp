@@ -58,7 +58,6 @@ int symTable::searchForSymbol(std::string name, int scope, std::string sType, st
 	}
 
 	while (temp != NULL) {
-		//if (std::strcmp(temp->name.c_str(), name.c_str()) && std::strcmp(temp->storageType.c_str(), sType.c_str()) && std::strcmp(temp->baseType.c_str(), type.c_str()) && temp->scope == scope) {
 		if(temp->name == name && temp->scope == level && temp->storageType == sType && temp->baseType == type) {
 			return -1;
 		}
@@ -66,6 +65,13 @@ int symTable::searchForSymbol(std::string name, int scope, std::string sType, st
 	}
 	return 0;
 }
+
+symTable::symbolInfo* symTable::getSym(std::string id, int scope) {
+	
+	struct symTable::symbolInfo * var1 = new symbolInfo();
+	return var1;
+}
+
 
 int symTable::deleteSymbol(std::string name, int scope, std::string sType, std::string type) {
 	return 0;

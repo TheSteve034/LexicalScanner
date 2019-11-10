@@ -153,12 +153,14 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="codeGenerator.cpp" />
     <ClCompile Include="compiler.cpp" />
     <ClCompile Include="parser.cpp" />
     <ClCompile Include="scanner.cpp" />
     <ClCompile Include="symTable.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="codeGenerator.h" />
     <ClInclude Include="Header.h" />
     <ClInclude Include="parser.h" />
     <ClInclude Include="scanner.h" />

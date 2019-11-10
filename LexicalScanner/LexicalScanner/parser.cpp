@@ -39,11 +39,24 @@ void parser::getNextToken() {
 	return;
 }
 
+/*
+This method creates the assembly file and error file. The assembly file will have the following headers added
+1 - export section
+2 - import section
+3 - initialized data section
+4 - un initialized data section
+The file will then be ready for vars to be declared.
+*/
 void parser::createFiles(std::string progName) {
 	std::string asemFile = progName + ".asm";
 	std::string errFile = progName + ".err";
  	assembly.open(asemFile, std::ios::out | std::ios::trunc);
 	error.open(errFile, std::ios::out | std::ios::trunc);
+	//add header data to .asm file. The cg object is the object that generats code
+	assembly << cg.getExportHeader() << std::endl;
+	assembly << cg.getImportHeader() << std::endl;
+	assembly << cg.getiDataHeader() << std::endl;
+	assembly << cg.getuDataHeader() << std::endl;
 }
 
 /*
@@ -142,6 +155,10 @@ int parser::blockRule() {
 			}
 		}
  		if (currToken == "BEGIN" ) {
+			//at this point we need to add the main header to the asm file
+			assembly << "\n" << std::endl;
+			assembly << cg.getCodeDataHeader() << std::endl;
+			assembly << "_main:" << std::endl;
 			if (statmentPartRule() != 0) {
 				error << "SYNTAX ERROR! MALFORMED STATMENT. Failed in parser::blockRule" << std::endl;
 				return -1;
@@ -180,6 +197,12 @@ int parser::varDecRule() {
 			}
 			std::cout << std::endl;
 			return -1;
+		}
+		//add  var to asm file
+		if (baseType == "INT") {
+			for (auto& name : symIds) {
+				assembly << cg.addIntVar(name) << std::endl;
+			}
 		}
 		resetSymVars();
 	}
@@ -1066,6 +1089,8 @@ int parser::simpleStatmentRule() {
 			error << "MALFORMED SIMPLE STATMENT. Failed in parser::simpleStatmentRule" << std::endl;
 			return -1;
 		}
+		//her we check if the assingment is valid.
+
 	}
 	else {
 		if (procedureCallRule() != 0) {
@@ -1298,6 +1323,8 @@ int parser::variableRule() {
 			}
 		}
 		else {
+			//capture non-indexed var lValue;
+			lValue = currToken;
 			return 0;
 		}
 	}
@@ -1464,6 +1491,8 @@ int parser::termRule() {
 			return -1;
 		}
 	}
+	//grab rValue;
+	rValue = currToken;
 	return 0;
 }
 
@@ -1487,7 +1516,6 @@ int parser::factorRule() {
 			return 0; //it is a well formed string const.
 		}
 	}
-	//TODO: can't deal with --1
 	if (sc.isIntConst(currToken)) {
 		//if this is true then we have an int const
 		return 0;
@@ -1558,6 +1586,11 @@ int parser::mulFactorRule() {
 
 void parser::printTable() {
 	st.printSymTable();
+}
+
+int isValidAssingmnet() {
+	//symTable::symbolInfo* var;
+	return 0;
 }
 
 int parser::parseFile() {

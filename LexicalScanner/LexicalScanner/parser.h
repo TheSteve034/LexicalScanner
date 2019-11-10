@@ -6,17 +6,21 @@
 #include <vector>
 #include "scanner.h"
 #include "symTable.h"
+#include "codeGenerator.h"
 
 
 class parser {
 private:
 	scanner sc = scanner();
+	codeGen cg = codeGen();
 	symTable st = symTable();
 	std::vector<std::string> tokens;
 	int tokenCount = 0;
 	int aStart = 0;
 	int aEnd = 0;
 	int aSize = 0;
+	std::string lValue;
+	std::string rValue;
 	std::string storageType = "";
 	std::string baseType = "";
 	std::string passType = "Value";
@@ -69,6 +73,8 @@ private:
 	int readRule();
 	int caseRule();
 	int casePartRule();
+
+	int isValidAssingmnet();
 
 
 public:
