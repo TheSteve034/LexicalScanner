@@ -66,10 +66,10 @@ int symTable::searchForSymbol(std::string name, int scope, std::string sType, st
 	return 0;
 }
 
-symTable::symbolInfo* symTable::getSym(std::string id, int scope) {
-	
-	struct symTable::symbolInfo * var1 = new symbolInfo();
-	return var1;
+symTable::symbolInfo* symTable::getSym(std::string id) {
+	int chain = generateHash(id);
+	symbolInfo* temp = block[chain];
+	return temp;
 }
 
 

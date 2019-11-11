@@ -19,6 +19,7 @@ private:
 	int aStart = 0;
 	int aEnd = 0;
 	int aSize = 0;
+	int lineCount = 0;
 	std::string lValue;
 	std::string rValue;
 	std::string storageType = "";
@@ -30,6 +31,7 @@ private:
 	std::fstream assembly = {};
 	std::fstream error = {};
 	void resetSymVars();
+	void resetLandRVars();
 
 	int programRule();
 	int blockRule();

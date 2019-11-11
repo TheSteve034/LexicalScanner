@@ -16,27 +16,30 @@ void parser::resetSymVars() {
 	st.setArraySize(0);
 }
 
+void parser::resetLandRVars() {
+	lValue = "";
+	rValue = "";
+}
+
 void parser::getNextToken() {
 	if (tokens[tokenCount] == "_EOF") {
 		currToken = tokens[tokenCount];
 		tokenCount++;
 		return;
 	}
-	if (tokens[tokenCount] == "_EOL") {
-		tokenCount++;
-	}
 	if (tokenCount == 0) {
 		currToken = sc.toCaps(tokens[tokenCount]);
 		tokenCount++;
 		nextToken = sc.toCaps(tokens[tokenCount]);
 		tokenCount++;
+		return;
 	}
-	else {
+	if(tokens[tokenCount] != "_EOL" && tokens[tokenCount+1] != "EOL"){
 		currToken = nextToken;
 		nextToken = sc.toCaps(tokens[tokenCount]);
 		tokenCount++;
+		return;
 	}
-	return;
 }
 
 /*
@@ -47,7 +50,23 @@ int parser::isValidAssingmnet() {
 	//check to see if rValue is a constant can be either an int or a string
 	//if not then get the type information for the rValue from the sym table
 	//test types and return approriately
-	return 0;
+	symTable::symbolInfo* lVar = st.getSym(lValue);
+	//test rval to see if it is an int const
+	if (sc.isIntConst(rValue)) {
+		if ((lVar->storageType == "INT") && (lVar->baseType == "INT")) {
+			return 0;
+		}
+		else {
+			return -1;
+		}
+	}
+	symTable::symbolInfo* rVar = st.getSym(rValue);
+	if ((lVar->storageType == rVar->storageType) && (lVar->baseType == rVar->baseType)) {
+		return 0;
+	}
+	else {
+		return -1;
+	}
 }
 
 /*
@@ -67,7 +86,18 @@ void parser::createFiles(std::string progName) {
 	assembly << cg.getExportHeader() << std::endl;
 	assembly << cg.getImportHeader() << std::endl;
 	assembly << cg.getiDataHeader() << std::endl;
-	assembly << cg.getuDataHeader() << std::endl;
+	int compGenVars = 0;
+	//check for any string constants declared in the begin blocks
+	for (int i = 0; i < tokens.size(); i++) {
+		if (tokens[i] == "\"") {
+			std::string var = tokens[i + 1];
+			i = i + 2;
+			//add string var to idata set
+			assembly << cg.addIStringVar(var, compGenVars) << std::endl;
+			compGenVars++;
+		}
+	}
+	assembly << "\n" + cg.getuDataHeader() << std::endl;
 }
 
 /*
@@ -124,6 +154,7 @@ int parser::programRule() {
 	}
 	else {
 		std::cout << "Program parsed successfuly" << std::endl;
+		assembly << cg.getExitHeader() << std::endl;
 		return 0;
 	}
 }
@@ -210,9 +241,14 @@ int parser::varDecRule() {
 			return -1;
 		}
 		//add  var to asm file
-		if (baseType == "INT") {
+		if (storageType == "INT") {
 			for (auto& name : symIds) {
 				assembly << cg.addIntVar(name) << std::endl;
+			}
+		}
+		if (storageType == "STRING") {
+			for (auto& name : symIds) {
+				assembly << cg.addSringVar(name) << std::endl;
 			}
 		}
 		resetSymVars();
@@ -1140,6 +1176,28 @@ int parser::writeRule() {
 				return -1;
 			}
 			else {
+				symTable::symbolInfo* lVar = st.getSym(lValue);
+				if (lVar == NULL) {
+					//this means we are dealing with some type of constant
+					if (rValue == "\"") { //we are passing an inline string to write
+						assembly << cg.writeCode("NONE", 0, 0) << std::endl;
+						resetLandRVars();
+					}
+					if (sc.isIntConst(rValue)) { //we are passing an inline int
+						assembly << cg.writeCode(rValue, 1, 1) << std::endl;
+						resetLandRVars();
+					}
+				}
+				if (lVar != NULL && lVar->storageType == "STRING") {
+					//we are passing a string var to write
+					assembly << cg.writeCode(lValue, 0, 0) << std::endl;
+					resetLandRVars();
+				}
+				if (lVar != NULL && lVar->storageType == "INT" && lVar != NULL) {
+					//we are sending an int var so send the flags 1,0
+					assembly << cg.writeCode(lValue, 1, 0) << std::endl;
+					resetLandRVars();
+				}
 				getNextToken();
 				return 0;
 			}
@@ -1224,8 +1282,22 @@ int parser::assingmentStatmentRule() {
 		}
 	}
 	//check types to make sure assignment is valid.
-	//pass lValue and rValue to cg object so it can add the code for the assingment.
-	assembly << cg.integerAssingment(lValue, rValue, 1) << std::endl;
+	if (isValidAssingmnet() != 0) {
+		error << "SYNTAX ERROR! TYPE MISSMATCH. Failed in assingmentStatmentRule" << std::endl;
+		std::cout << "SYNTAX ERROR, TYPE MISSMATCH BETWEEN " + lValue + " AND " + rValue << std::endl;
+	}
+	else {
+		//pass lValue and rValue to cg object so it can add the code for the assingment.
+		symTable::symbolInfo* lVar = st.getSym(lValue);
+		if (lVar->storageType == "INT" && sc.isIntConst(rValue)) { //this is here to restrict gode generation to int assingments only since that is all the has been implmented.
+			assembly << cg.integerAssingment(lValue, rValue, 1) << std::endl;
+			resetLandRVars();
+		}
+		else {
+			assembly << cg.integerAssingment(lValue, rValue, 0) << std::endl;
+			resetLandRVars();
+		}
+	}
 
 	return 0;
 }
@@ -1341,7 +1413,9 @@ int parser::variableRule() {
 		}
 		else {
 			//capture non-indexed var lValue;
-			lValue = currToken;
+			if (lValue == "") {
+				lValue = currToken;
+			}
 			return 0;
 		}
 	}

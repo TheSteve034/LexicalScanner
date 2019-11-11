@@ -5,6 +5,7 @@
 std::regex idRE("[A-Z][A-Z 0-9 _]*");
 std::regex singelLineCommenetRE("\/\/.*");
 std::regex intConstantRE("-?[1-9][0-9]*");
+std::regex stringConstRE("\"*\"");
 
 std::vector<std::string> scanner::getTokens(std::string filePath) {
 	std::ifstream file(filePath.c_str(), std::ifstream::in);
@@ -290,6 +291,15 @@ bool scanner::isIntConst(std::string token) {
 	}
 	if (std::regex_match(token, intConstantRE)) {
 		//std::cout << "INTEGER CONSTANT\t" + token << std::endl;
+		return true;
+	}
+	else {
+		return false;
+	}
+}
+
+bool scanner::isStringConst(std::string token) {
+	if (std::regex_match(token, stringConstRE)) {
 		return true;
 	}
 	else {

@@ -19,15 +19,6 @@ private:
 	">", "<=", ">=", "(", ")", "[", "]", ":=", ".", ",", ";", ":", "..", "'",
 	"\"", "/" };
 
-	//functions to identify parts of the grammar
-	/*bool isReserved(std::string token);
-	bool isSpecial(std::string token);
-	bool isIntConst(std::string token);
-	bool isId(std::string token);
-	bool isEOF(std::string token);
-	bool isNotEOL(std::string token);
-	std::string toCaps(std::string token);*/
-
 public:
 	bool isReserved(std::string token);
 	bool isSpecial(std::string token);
@@ -35,6 +26,7 @@ public:
 	bool isId(std::string token);
 	bool isEOF(std::string token);
 	bool isNotEOL(std::string token);
+	bool isStringConst(std::string token);
 
 	std::string toCaps(std::string token);
 	std::vector<std::string> getTokens(std::string filePath);
