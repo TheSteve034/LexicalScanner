@@ -40,6 +40,17 @@ void parser::getNextToken() {
 }
 
 /*
+This method checks the types of lValue and rValue to make sure the types match
+*/
+int parser::isValidAssingmnet() {
+	//need a method to get the type information from the sym table
+	//check to see if rValue is a constant can be either an int or a string
+	//if not then get the type information for the rValue from the sym table
+	//test types and return approriately
+	return 0;
+}
+
+/*
 This method creates the assembly file and error file. The assembly file will have the following headers added
 1 - export section
 2 - import section
@@ -817,6 +828,7 @@ int parser::structuredStatmentRule() {
 	//currToken will be a non terminal as we can branch from here without
 	//calling next token.
 	if (currToken == "WHILE") {
+		getNextToken();
 		if (whileStatmentRule() != 0) {
 			error << "SYNTAX ERROR! MALFORMED WHILE STATMENT. Failed in parser::structuredStatmentRule()" << std::endl;
 			return -1;
@@ -827,6 +839,7 @@ int parser::structuredStatmentRule() {
 		
 	}
 	if (currToken == "IF") {
+		getNextToken();
 		if (ifStatmentRule() != 0) {
 			error << "SYNTAX ERROR! MALFORMED IF STATMENT. Failed in parser::structuredStatmentRule" << std::endl;
 			return -1;
@@ -1210,6 +1223,10 @@ int parser::assingmentStatmentRule() {
 			}
 		}
 	}
+	//check types to make sure assignment is valid.
+	//pass lValue and rValue to cg object so it can add the code for the assingment.
+	assembly << cg.integerAssingment(lValue, rValue, 1) << std::endl;
+
 	return 0;
 }
 
@@ -1521,8 +1538,7 @@ int parser::factorRule() {
 		return 0;
 	}
 	//now check for currtoken for "("
-	if (nextToken == "(") {
-		getNextToken();
+	if (currToken == "(") {
 		getNextToken();
 		if (expressionRule() != 0) {
 			error << "SYNTAX ERROR! MALFORMED EXPRESSION. Failed in parser::factorRule" << std::endl;

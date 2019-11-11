@@ -226,12 +226,14 @@ std::vector<std::string> scanner::getTokens(std::string filePath) {
 			continue;
 		}
 		if (token.empty() && inStringConst == false) {
+			//token = "_EOL";
+			//tokens.push_back(token);
 			continue;
 		}
 		else if (!token.empty() && inStringConst == false) {
 			tokens.push_back(token);
-			/*token = "_EOL";
-			tokens.push_back(token);*/
+			//token = "_EOL";
+			//tokens.push_back(token);
 		}
 	}
 	/*Finally, when the while loop ends we have consumed the whole file an _EOF will be added to
