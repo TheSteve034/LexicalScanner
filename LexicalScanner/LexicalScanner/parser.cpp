@@ -85,19 +85,20 @@ void parser::createFiles(std::string progName) {
 	//add header data to .asm file. The cg object is the object that generats code
 	assembly << cg.getExportHeader() << std::endl;
 	assembly << cg.getImportHeader() << std::endl;
-	assembly << cg.getiDataHeader() << std::endl;
-	int compGenVars = 0;
+	assembly << "\nJMP\t_main:" << std::endl;
+	//assembly << cg.getiDataHeader() << std::endl;
+	//int compGenVars = 0;
 	//check for any string constants declared in the begin blocks
-	for (int i = 0; i < tokens.size(); i++) {
-		if (tokens[i] == "\"") {
-			std::string var = tokens[i + 1];
-			i = i + 2;
-			//add string var to idata set
-			assembly << cg.addIStringVar(var, compGenVars) << std::endl;
-			compGenVars++;
-		}
-	}
-	assembly << "\n" + cg.getuDataHeader() << std::endl;
+	//for (int i = 0; i < tokens.size(); i++) {
+	//	if (tokens[i] == "\"") {
+	//		std::string var = tokens[i + 1];
+	//		i = i + 2;
+	//		//add string var to idata set
+	//		assembly << cg.addIStringVar(var, compGenVars) << std::endl;
+	//		compGenVars++;
+	//	}
+	//}
+	//assembly << "\n" + cg.getuDataHeader() << std::endl;
 }
 
 /*
@@ -155,6 +156,19 @@ int parser::programRule() {
 	else {
 		std::cout << "Program parsed successfuly" << std::endl;
 		assembly << cg.getExitHeader() << std::endl;
+		//add the .data section to my asm file
+		assembly << "\n" << std::endl;
+		assembly << cg.getiDataHeader() << std::endl;
+		for (auto& var : cg.iVar) {
+			assembly << var << std::endl;
+		}
+		//add .bss section to asm file
+		assembly << "\n" << std::endl;
+		assembly << cg.getuDataHeader() << std::endl;
+		for (auto& var : cg.uVar) {
+			assembly << var << std::endl;
+		}
+
 		return 0;
 	}
 }
@@ -197,10 +211,12 @@ int parser::blockRule() {
 			}
 		}
  		if (currToken == "BEGIN" ) {
-			//at this point we need to add the main header to the asm file
-			assembly << "\n" << std::endl;
-			assembly << cg.getCodeDataHeader() << std::endl;
-			assembly << "_main:" << std::endl;
+			//at this point we need to add the main header to the asm file if we are not in a procedure.
+			if (inProc == false) {
+				assembly << "\n" << std::endl;
+				assembly << cg.getCodeDataHeader() << std::endl;
+				assembly << "_main:" << std::endl;
+			}
 			if (statmentPartRule() != 0) {
 				error << "SYNTAX ERROR! MALFORMED STATMENT. Failed in parser::blockRule" << std::endl;
 				return -1;
@@ -243,12 +259,12 @@ int parser::varDecRule() {
 		//add  var to asm file
 		if (storageType == "INT") {
 			for (auto& name : symIds) {
-				assembly << cg.addIntVar(name) << std::endl;
+				cg.uVar.push_back(cg.addIntVar(name));
 			}
 		}
 		if (storageType == "STRING") {
 			for (auto& name : symIds) {
-				assembly << cg.addSringVar(name) << std::endl;
+				cg.uVar.push_back(cg.addSringVar(name));
 			}
 		}
 		resetSymVars();
@@ -565,6 +581,10 @@ int parser::procDeclRule() {
 		return -1;
 	}
 	else {
+		//create proc lable in the assembly
+		inProc = true;
+		procName = currToken;
+		assembly << "\n" + cg.generateLable(currToken) << std::endl;
 		//capture the ID of the proc in preperation for adding it to the sym table 
 		symIds.push_back(currToken);
 		//now add proc ID to the sym table.
@@ -794,6 +814,7 @@ int parser::compoundStatmentRule() {
 				return -1;
 			}
 			else {
+				inProc = false;
 				st.moveLevelDown();
 				getNextToken();
 				return 0;
@@ -1180,22 +1201,23 @@ int parser::writeRule() {
 				if (lVar == NULL) {
 					//this means we are dealing with some type of constant
 					if (rValue == "\"") { //we are passing an inline string to write
-						assembly << cg.writeCode("NONE", 0, 0) << std::endl;
+						assembly << cg.writeCode("NONE", 0, 0,procName,compGenCount,inProc,tokens[tokenCount-4]) << std::endl;
+						++compGenCount;
 						resetLandRVars();
 					}
 					if (sc.isIntConst(rValue)) { //we are passing an inline int
-						assembly << cg.writeCode(rValue, 1, 1) << std::endl;
+						assembly << cg.writeCode(rValue, 1, 1,"NONE",-1, inProc, "PL") << std::endl;
 						resetLandRVars();
 					}
 				}
 				if (lVar != NULL && lVar->storageType == "STRING") {
 					//we are passing a string var to write
-					assembly << cg.writeCode(lValue, 0, 0) << std::endl;
+					assembly << cg.writeCode(lValue, 0, 0,"NONE", -1, inProc, "PL") << std::endl;
 					resetLandRVars();
 				}
 				if (lVar != NULL && lVar->storageType == "INT" && lVar != NULL) {
 					//we are sending an int var so send the flags 1,0
-					assembly << cg.writeCode(lValue, 1, 0) << std::endl;
+					assembly << cg.writeCode(lValue, 1, 0,"NONE", -1, inProc, "PL") << std::endl;
 					resetLandRVars();
 				}
 				getNextToken();
@@ -1233,6 +1255,19 @@ int parser::readRule() {
 				return -1;
 			}
 			else {
+				//add asm code for the read.
+				//first we need to check the type of the var
+				symTable::symbolInfo* readVar = st.getSym(lValue);
+				if (readVar != NULL && readVar->storageType == "INT") {
+					//call read with an int var
+					assembly << cg.readCode(lValue, "INT") << std::endl;
+					resetLandRVars();
+				}
+				else if (readVar != NULL && readVar->storageType == "STRING") {
+					//call read with a string var
+					assembly << cg.readCode(lValue, "STRING") << std::endl;
+					resetLandRVars();
+				}
 				getNextToken();
 				return 0;
 			}

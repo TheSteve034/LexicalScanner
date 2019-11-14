@@ -20,6 +20,9 @@ private:
 	int aEnd = 0;
 	int aSize = 0;
 	int lineCount = 0;
+	int compGenCount = 0;
+	bool inProc = false;
+	std::string procName = "";
 	std::string lValue;
 	std::string rValue;
 	std::string storageType = "";
