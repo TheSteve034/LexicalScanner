@@ -22,9 +22,11 @@ private:
 	int lineCount = 0;
 	int compGenCount = 0;
 	bool inProc = false;
+	int procCount = 0;
 	std::string procName = "";
-	std::string lValue;
-	std::string rValue;
+	std::string lValue = "";
+	std::string rValue = "";
+	std::string rValueP1 = "";
 	std::string storageType = "";
 	std::string baseType = "";
 	std::string passType = "Value";

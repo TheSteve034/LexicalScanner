@@ -66,9 +66,70 @@ int symTable::searchForSymbol(std::string name, int scope, std::string sType, st
 	return 0;
 }
 
-symTable::symbolInfo* symTable::getSym(std::string id) {
+/*
+This method is used when the parser is trying to retrive a symbol from the symbol table. The method covers the following cases
+1 - symbol name exists at the current scope. If this is the case return the symbol
+2 - Symbol name does not exist at the current scope. Then we check the value of proc count if the value is 0 then the parsere is not currently
+	parsing a procedure. In this case we look to see if the symbol exists at global scope.
+3 - The proc count is equal to 1 then we check in the global scope if the symbol is not found locally
+4 - The proc count is greater than 1 meaning that we are in a nested procedure. In this case we look one level above the current scope and if
+	the symbol is not there then we check the global scope.
+5 - if the symbol cannot be found in any of the previous cases then we return a NULL value indicating to the caller that the symbol requested
+	is unknown.
+*/
+symTable::symbolInfo* symTable::getSym(std::string id, int procCount) {
 	int chain = generateHash(id);
 	symbolInfo* temp = block[chain];
+	//in this case the symbol is not in the table.
+	if (temp == NULL) {
+		return temp;
+	}
+	//case 1 In this case we will also set the value for isOnlevel since this check may be preformed several times in this method
+	bool isOnLevel = false;
+	if (temp->scope == level) {
+		isOnLevel = true;
+		return temp;
+	}
+	else {
+		isOnLevel = false;
+	}
+	//case 2
+	if (!isOnLevel && procCount == 0) {
+		while (temp != NULL) {
+			if (temp->scope == 0) {
+				return temp;
+			}
+			else {
+				temp = temp->next;
+			}
+		}
+		return temp;
+	}
+	//case 3
+	if (!isOnLevel && procCount == 1) {
+		while (temp != NULL) {
+			if (temp->scope == 0) {
+				return temp;
+			}
+			else {
+				temp = temp->next;
+			}
+		}
+		return temp;
+	}
+	//case 4
+	if (!isOnLevel && procCount > 1) {
+		while (temp != NULL) {
+			if ((temp->scope == level - 1) || (temp->scope == 0)) {
+				return temp;
+			}
+			else {
+				temp = temp->next;
+			}
+		}
+		return temp;
+	}
+	//case 5
 	return temp;
 }
 

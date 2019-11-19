@@ -44,24 +44,39 @@ void parser::getNextToken() {
 
 /*
 This method checks the types of lValue and rValue to make sure the types match
+currently does not handle array assingments.
 */
 int parser::isValidAssingmnet() {
-	//need a method to get the type information from the sym table
 	//check to see if rValue is a constant can be either an int or a string
 	//if not then get the type information for the rValue from the sym table
 	//test types and return approriately
-	symTable::symbolInfo* lVar = st.getSym(lValue);
+	symTable::symbolInfo* lVar = st.getSym(lValue, procCount);
+	//if lvar is an array return, not currently implemented
+	if (lVar != NULL && lVar->storageType == "ARRAY") {
+		return 0;
+	}
 	//test rval to see if it is an int const
-	if (sc.isIntConst(rValue)) {
-		if ((lVar->storageType == "INT") && (lVar->baseType == "INT")) {
+	if (sc.isIntConst(rValue) && lVar->storageType == "INT") {
+		if (lVar != NULL && (lVar->storageType == "INT") && (lVar->baseType == "INT")) {
 			return 0;
 		}
 		else {
 			return -1;
 		}
 	}
-	symTable::symbolInfo* rVar = st.getSym(rValue);
-	if ((lVar->storageType == rVar->storageType) && (lVar->baseType == rVar->baseType)) {
+	//test for string const
+	if (rValue == "\"" && lVar->storageType == "STRING") {
+		//this is the case where we are assigning an inline string to an already delcared var
+		return 0;
+	}
+
+	//test for Boolean assingment being made with TRUE or FALSE
+	if (lVar != NULL && lVar->storageType == "BOOLEAN") {
+		return 0;
+	}
+
+	symTable::symbolInfo* rVar = st.getSym(rValue, procCount);
+	if (rVar != NULL && ((lVar->storageType == rVar->storageType) && (lVar->baseType == rVar->baseType))) {
 		return 0;
 	}
 	else {
@@ -85,7 +100,7 @@ void parser::createFiles(std::string progName) {
 	//add header data to .asm file. The cg object is the object that generats code
 	assembly << cg.getExportHeader() << std::endl;
 	assembly << cg.getImportHeader() << std::endl;
-	assembly << "\nJMP\t_main:" << std::endl;
+	assembly << "\nJMP\t_main" << std::endl;
 	//assembly << cg.getiDataHeader() << std::endl;
 	//int compGenVars = 0;
 	//check for any string constants declared in the begin blocks
@@ -583,6 +598,7 @@ int parser::procDeclRule() {
 	else {
 		//create proc lable in the assembly
 		inProc = true;
+		procCount = ++procCount;
 		procName = currToken;
 		assembly << "\n" + cg.generateLable(currToken) << std::endl;
 		//capture the ID of the proc in preperation for adding it to the sym table 
@@ -815,6 +831,7 @@ int parser::compoundStatmentRule() {
 			}
 			else {
 				inProc = false;
+				procCount = --procCount;
 				st.moveLevelDown();
 				getNextToken();
 				return 0;
@@ -1197,7 +1214,7 @@ int parser::writeRule() {
 				return -1;
 			}
 			else {
-				symTable::symbolInfo* lVar = st.getSym(lValue);
+				symTable::symbolInfo* lVar = st.getSym(lValue, procCount);
 				if (lVar == NULL) {
 					//this means we are dealing with some type of constant
 					if (rValue == "\"") { //we are passing an inline string to write
@@ -1257,7 +1274,7 @@ int parser::readRule() {
 			else {
 				//add asm code for the read.
 				//first we need to check the type of the var
-				symTable::symbolInfo* readVar = st.getSym(lValue);
+				symTable::symbolInfo* readVar = st.getSym(lValue, procCount);
 				if (readVar != NULL && readVar->storageType == "INT") {
 					//call read with an int var
 					assembly << cg.readCode(lValue, "INT") << std::endl;
@@ -1318,17 +1335,18 @@ int parser::assingmentStatmentRule() {
 	}
 	//check types to make sure assignment is valid.
 	if (isValidAssingmnet() != 0) {
-		error << "SYNTAX ERROR! TYPE MISSMATCH. Failed in assingmentStatmentRule" << std::endl;
-		std::cout << "SYNTAX ERROR, TYPE MISSMATCH BETWEEN " + lValue + " AND " + rValue << std::endl;
+		error << "SYNTAX ERROR! TYPE MISSMATCH OR SYMBOL UNKNOWN. Failed in assingmentStatmentRule" << std::endl;
+		std::cout << "SYNTAX ERROR, TYPE MISSMATCH BETWEEN " + lValue + " AND " + rValue + " OR ONE OR BOTH VALUES ARE UNKNOWN"<< std::endl;
+		return -1;
 	}
 	else {
 		//pass lValue and rValue to cg object so it can add the code for the assingment.
-		symTable::symbolInfo* lVar = st.getSym(lValue);
+		symTable::symbolInfo* lVar = st.getSym(lValue, procCount);
 		if (lVar->storageType == "INT" && sc.isIntConst(rValue)) { //this is here to restrict gode generation to int assingments only since that is all the has been implmented.
 			assembly << cg.integerAssingment(lValue, rValue, 1) << std::endl;
 			resetLandRVars();
 		}
-		else {
+		else if(lVar->storageType == "INT") {
 			assembly << cg.integerAssingment(lValue, rValue, 0) << std::endl;
 			resetLandRVars();
 		}
@@ -1619,6 +1637,7 @@ int parser::termRule() {
 	}
 	//grab rValue;
 	rValue = currToken;
+	rValueP1 = nextToken;
 	return 0;
 }
 

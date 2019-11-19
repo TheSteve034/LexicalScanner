@@ -57,7 +57,7 @@ std::string codeGen::integerAssingment(std::string lVal, std::string rVal, int c
 		line = "\n\tmov\tedi, _" + lVal +"\t\t;move lval address into edi" + "\n\tmov\tDWORD[edi]," + rVal + "\t\t;assing the value of rVal to edi";
 	}
 	else {
-		line = "\n\tmov\tedi, _" + rVal + " " + "\t\t;move rval into edi";
+		line = "\n\tmov\tedi, DWORD[_" + rVal + " " + "]\t\t;move rval into edi";
 		line += "\n\tmov\tDWORD[_" + lVal + "], edi " + "\t\t;assign rval to lval";
 	}
 	return line;
@@ -91,8 +91,8 @@ std::string codeGen::writeCode(std::string var, int numFlag, int varNumFlag, std
 		}
 		else {
 			//this is the case where we are using an inline var from main
-			iVar.push_back("\t_" + std::to_string(compGenVarCount) + "_string" + "_string\t\tdb\t\"" + currToken + "\",0\t;this is a string var that is not decalred in the var block");
-			line = "\n\tpush\t_" + std::to_string(compGenVarCount) + "_string" + "\t;adding var to be printed onto stack";
+			iVar.push_back("\t_" + std::to_string(compGenVarCount) + "_string" + "_\t\tdb\t\"" + currToken + "\",0\t;this is a string var that is not decalred in the var block");
+			line = "\n\tpush\t_" + std::to_string(compGenVarCount) + "_string" + "_\t;adding var to be printed onto stack";
 		}
 		line += "\n\tpush\tstringPrinter\t;add format string to stack";
 		line += "\n\tcall\t_printf\t;print to console";
@@ -128,6 +128,7 @@ std::string codeGen::readCode(std::string var, std::string type) {
 	std::string line;
 	//case 1
 	if (type == "INT") {
+		//line = "\n\tpush\t_" + var + "\t;adding var to be read into to the stack";
 		line = "\n\tpush\tDWORD[_" + var + "]\t;adding var to be read into to the stack";
 		line += "\n\tpush\tnumberReader\t;add format string to stack";
 		line += "\n\tcall\t_scanf\t;call to scanf";

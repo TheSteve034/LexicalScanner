@@ -304,6 +304,9 @@ bool scanner::isStringConst(std::string token) {
 	}
 	else {
 		return false;
+
+
+
 	}
 }
 
