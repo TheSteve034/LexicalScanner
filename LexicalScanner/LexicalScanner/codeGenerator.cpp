@@ -129,7 +129,7 @@ std::string codeGen::readCode(std::string var, std::string type) {
 	//case 1
 	if (type == "INT") {
 		//line = "\n\tpush\t_" + var + "\t;adding var to be read into to the stack";
-		line = "\n\tpush\tDWORD[_" + var + "]\t;adding var to be read into to the stack";
+		line = "\n\tpush\t_" + var + "\t;adding var to be read into to the stack";
 		line += "\n\tpush\tnumberReader\t;add format string to stack";
 		line += "\n\tcall\t_scanf\t;call to scanf";
 		line += "\n\tadd\tesp, 0x8\t;clear the stack";

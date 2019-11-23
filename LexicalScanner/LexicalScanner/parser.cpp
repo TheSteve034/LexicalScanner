@@ -1580,7 +1580,7 @@ int parser::simpleExpressionRule() {
 		getNextToken();
 	}
 	//check for a term
-	if (termRule() != 0) {
+	if(termRule() != 0) {
 		error << "SYTNAX ERROR! MALFORMED TERM. Failed in parser::simpleExpressionRule" << std::endl;
 		return -1;
 	}

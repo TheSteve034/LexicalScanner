@@ -25,7 +25,7 @@ private:
 	int procCount = 0;
 	std::string procName = "";
 	std::string lValue = "";
-	std::string rValue = "";
+	std::string rValue = {};
 	std::string rValueP1 = "";
 	std::string storageType = "";
 	std::string baseType = "";
