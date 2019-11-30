@@ -1360,6 +1360,9 @@ int parser::assingmentStatmentRule() {
 			}
 		}
 	}
+	if (assingmentDone == true && inAddOp == true) {
+		assembly << "\tmov DWORD[_" + lValue + "], edi" << std::endl;
+	}
 
 	return 0;
 }
@@ -1625,35 +1628,47 @@ int parser::addTermRule() {
 		return -1;
 	}
 	else {
-		addOppRval = currToken;
-		operation = tokens[tokenCount - 3];
-		if (sc.isIntConst(addOppLval)) {
-			assembly << "\tmov edi,\t" + addOppLval + "\t; move int const into edi" << std::endl;
-			ediInuse = true;
+		if (mulFactor == false) {
+			addOppRval = currToken;
+			operation = tokens[tokenCount - 3];
+			if (sc.isIntConst(addOppLval)) {
+				assembly << "\tmov edi,\t" + addOppLval + "\t; move int const into edi" << std::endl;
+				ediInuse = true;
+			}
+			else {
+				assembly << "\tmov edi,\tDWORD[_" + addOppLval + "]\t; move int var into edi" << std::endl;
+				ediInuse = true;
+			}
+			if (sc.isIntConst(addOppRval)) {
+				if (operation == "+") {
+					assembly << "\tadd edi,\t" + addOppRval + "\t;add const to edi" << std::endl;
+					ediInuse = true;
+				}
+				else if (operation == "-") {
+					assembly << "\tsub edi,\t" + addOppRval + "\t;subtract const to edi" << std::endl;
+					ediInuse = true;
+				}
+			}
+			else {
+				if (operation == "+") {
+					assembly << "\tadd edi,\tDWORD[_" + addOppRval + "]\t;subtract var from edi" << std::endl;
+					ediInuse = true;
+				}
+				else if (operation == "-") {
+					assembly << "\tsub edi,\tDWORD[_" + addOppRval + "]\t;subtract var from edi" << std::endl;
+					ediInuse = true;
+				}
+			}
 		}
-		else {
-			assembly << "\tmov edi,\tDWORD[_" + addOppLval + "]\t; move int var into edi" << std::endl;
-			ediInuse = true;
-		}
-		if (sc.isIntConst(addOppRval)) {
+		else if (mulFactor == true){
+			operation = tokens[tokenCount - 5];
 			if (operation == "+") {
-				assembly << "\tadd edi,\t" + addOppRval + "\t;add const to edi"<< std::endl;
-				ediInuse = true;
+				assembly << "\tadd edi, esi" << std::endl;
 			}
-			else if (operation == "-") {
-				assembly << "\tsub edi,\t" + addOppRval + "\t;subtract const to edi" << std::endl;
-				ediInuse = true;
+			if (operation == "-") {
+				assembly << "\tsub edi, esi" << std::endl;
 			}
-		}
-		else {
-			if (operation == "+") {
-				assembly << "\tadd edi,\tDWORD[_" + addOppRval + "]\t;subtract var from edi" << std::endl;
-				ediInuse = true;
-			}
-			else if (operation == "-") {
-				assembly << "\tsub edi,\tDWORD[_" + addOppRval + "]\t;subtract var from edi" << std::endl;
-				ediInuse = true;
-			}
+			assingmentDone = true;
 		}
 		getNextToken();
 		if (addTermRule() != 0) {
@@ -1678,7 +1693,7 @@ int parser::termRule() {
 			error << "SYNTAX ERROR! MALFORMED MUL FACTOR. Failed arser::termRule" << std::endl;
 			return -1;
 		}
-		if (mulFactor == true) {
+		if (mulFactor == true && inAddOp == false) {
 			/*assembly << "\tmov\tesi, \tDWORD[_" + currToken + "]\t; move op1 into dest register" << std::endl;
 			assembly << "\timul\tedi,\tesi\t;op1 = op1 * op2" << std::endl;*/
 			assembly << "\tmov\tDWORD[_" + lValue + "],\tedi" << std::endl;
@@ -1777,7 +1792,7 @@ int parser::mulFactorRule() {
 		}
 		if (ediInuse == true && inAddOp == true) {
 			if (sc.isIntConst(currToken)) {
-				assembly << "\tmove esi,\t" + currToken << std::endl;
+				assembly << "\tmov esi,\t" + currToken << std::endl;
 			}
 			else {
 				assembly << "\tmov\tesi, \tDWORD[_" + currToken + "]" << std::endl;
@@ -1792,13 +1807,60 @@ int parser::mulFactorRule() {
 		}
 		else {
 			if (operation == "*") {
-				if (ediInuse == false && lastOperand != currToken) {
-					assembly << "\timul\tedi,\tDWORD[_" + currToken + "]\t;op1 = op1 * op2" << std::endl;
-					ediInuse = true;
+				bool constVal = false;
+				if (sc.isIntConst(currToken)) {
+					constVal = true;
 				}
-				else {
-					if (lastOperand != currToken) {
+				if (inAddOp == false) {
+					if ((ediInuse == false) && (lastOperand != currToken) && (constVal == false)) {
 						assembly << "\timul\tedi,\tDWORD[_" + currToken + "]\t;op1 = op1 * op2" << std::endl;
+						ediInuse = true;
+					}
+					else {
+						if ((lastOperand != currToken) && (ediInuse == false) && (constVal == false)) {
+							assembly << "\timul\tedi,\tDWORD[_" + currToken + "]\t;op1 = op1 * op2" << std::endl;
+						}
+						else if ((lastOperand != currToken) && (ediInuse == true) && (constVal == false)) {
+							assembly << "\timul\tedi,\tDWORD[_" + currToken + "]\t;op1 = op1 * op2" << std::endl;
+						}
+					}
+					if ((ediInuse == false) && (lastOperand != currToken) && (constVal == true)) {
+						assembly << "\timul\tedi,\t" + currToken + "\t;op1 = op1 * op2" << std::endl;
+						ediInuse = true;
+					}
+					else {
+						if ((lastOperand != currToken) && (ediInuse == false) && (constVal == true)) {
+							assembly << "\timul\tedi,\t" + currToken + "\t;op1 = op1 * op2" << std::endl;
+						}
+						else if ((lastOperand != currToken) && (ediInuse == true) && (constVal == true)) {
+							assembly << "\timul\tedi,\t" + currToken + "\t;op1 = op1 * op2" << std::endl;
+						}
+					}
+				}
+				else if (inAddOp == true) {
+					if ((ediInuse == true) && (lastOperand != currToken) && (constVal == false)) {
+						assembly << "\timul\tesi,\tDWORD[_" + currToken + "]\t;op1 = op1 * op2" << std::endl;
+						ediInuse = true;
+					}
+					else {
+						if ((lastOperand != currToken) && (ediInuse == true) && (constVal == false)) {
+							assembly << "\timul\tesi,\tDWORD[_" + currToken + "]\t;op1 = op1 * op2" << std::endl;
+						}
+						else if ((lastOperand != currToken) && (ediInuse == true) && (constVal == false)) {
+							assembly << "\timul\tesi,\tDWORD[_" + currToken + "]\t;op1 = op1 * op2" << std::endl;
+						}
+					}
+					if ((ediInuse == true) && (lastOperand != currToken) && (constVal == true)) {
+						assembly << "\timul\tesi,\t" + currToken + "\t;op1 = op1 * op2" << std::endl;
+						ediInuse = true;
+					}
+					else {
+						if ((lastOperand != currToken) && (ediInuse == true) && (constVal == true)) {
+							assembly << "\timul\tesi,\t" + currToken + "\t;op1 = op1 * op2" << std::endl;
+						}
+						else if ((lastOperand != currToken) && (ediInuse == true) && (constVal == true)) {
+							assembly << "\timul\tesi,\t" + currToken + "\t;op1 = op1 * op2" << std::endl;
+						}
 					}
 				}
 				lastOperand = currToken;

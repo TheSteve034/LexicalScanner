@@ -1,15 +1,6 @@
 ﻿C:\Program Files (x86)\Microsoft Visual Studio\2019\Preview\MSBuild\Microsoft\VC\v160\Microsoft.CppBuild.targets(452,5): warning MSB8028: The intermediate directory (Debug\) contains files shared from another project (Complier.vcxproj, LexicalScanner.vcxproj).  This can lead to incorrect clean and rebuild behavior.
-  codeGenerator.cpp
-  compiler.cpp
   parser.cpp
-  scanner.cpp
 C:\Users\swree\source\repos\LexicalScanner\LexicalScanner\LexicalScanner\parser.cpp(203,16) : warning C4129: ' ': unrecognized character escape sequence
-C:\Users\swree\source\repos\LexicalScanner\LexicalScanner\LexicalScanner\scanner.cpp(6,33) : warning C4129: '/': unrecognized character escape sequence
-C:\Users\swree\source\repos\LexicalScanner\LexicalScanner\LexicalScanner\scanner.cpp(256,20) : warning C4018: '<': signed/unsigned mismatch
-  symTable.cpp
-  Generating Code...
-C:\Users\swree\source\repos\LexicalScanner\LexicalScanner\LexicalScanner\scanner.cpp(372,20) : warning C4018: '<': signed/unsigned mismatch
-C:\Users\swree\source\repos\LexicalScanner\LexicalScanner\LexicalScanner\symTable.cpp(297)  : warning C4715: 'symTable::calucalteIndexRange': not all control paths return a value
 C:\Users\swree\source\repos\LexicalScanner\LexicalScanner\LexicalScanner\parser.cpp(191)  : warning C4715: 'parser::programRule': not all control paths return a value
 C:\Users\swree\source\repos\LexicalScanner\LexicalScanner\LexicalScanner\parser.cpp(354)  : warning C4715: 'parser::moreDeclsRule': not all control paths return a value
 C:\Users\swree\source\repos\LexicalScanner\LexicalScanner\LexicalScanner\parser.cpp(415)  : warning C4715: 'parser::arrayDefRule': not all control paths return a value
@@ -20,9 +11,8 @@ C:\Users\swree\source\repos\LexicalScanner\LexicalScanner\LexicalScanner\parser.
 C:\Users\swree\source\repos\LexicalScanner\LexicalScanner\LexicalScanner\parser.cpp(1056)  : warning C4715: 'parser::casePartRule': not all control paths return a value
 C:\Users\swree\source\repos\LexicalScanner\LexicalScanner\LexicalScanner\parser.cpp(1148)  : warning C4715: 'parser::whileStatmentRule': not all control paths return a value
 C:\Users\swree\source\repos\LexicalScanner\LexicalScanner\LexicalScanner\parser.cpp(1190)  : warning C4715: 'parser::simpleStatmentRule': not all control paths return a value
-C:\Users\swree\source\repos\LexicalScanner\LexicalScanner\LexicalScanner\parser.cpp(1453)  : warning C4715: 'parser::moreArgListRule': not all control paths return a value
-C:\Users\swree\source\repos\LexicalScanner\LexicalScanner\LexicalScanner\parser.cpp(1542)  : warning C4715: 'parser::arrayIdxRule': not all control paths return a value
-C:\Users\swree\source\repos\LexicalScanner\LexicalScanner\LexicalScanner\parser.cpp(1580)  : warning C4715: 'parser::relExpressionRule': not all control paths return a value
-C:\Users\swree\source\repos\LexicalScanner\LexicalScanner\LexicalScanner\parser.cpp(1664)  : warning C4715: 'parser::addTermRule': not all control paths return a value
-C:\Users\swree\source\repos\LexicalScanner\LexicalScanner\LexicalScanner\codeGenerator.cpp(134)  : warning C4715: 'codeGen::writeCode': not all control paths return a value
-LINK : fatal error LNK1104: cannot open file 'C:\Users\swree\source\repos\LexicalScanner\LexicalScanner\Debug\Compiler.exe'
+C:\Users\swree\source\repos\LexicalScanner\LexicalScanner\LexicalScanner\parser.cpp(1456)  : warning C4715: 'parser::moreArgListRule': not all control paths return a value
+C:\Users\swree\source\repos\LexicalScanner\LexicalScanner\LexicalScanner\parser.cpp(1545)  : warning C4715: 'parser::arrayIdxRule': not all control paths return a value
+C:\Users\swree\source\repos\LexicalScanner\LexicalScanner\LexicalScanner\parser.cpp(1583)  : warning C4715: 'parser::relExpressionRule': not all control paths return a value
+C:\Users\swree\source\repos\LexicalScanner\LexicalScanner\LexicalScanner\parser.cpp(1679)  : warning C4715: 'parser::addTermRule': not all control paths return a value
+  LexicalScanner.vcxproj -> C:\Users\swree\source\repos\LexicalScanner\LexicalScanner\Debug\Compiler.exe
