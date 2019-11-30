@@ -1783,11 +1783,21 @@ int parser::mulFactorRule() {
 	else {
 		mulFactor = true;
 		if (ediInuse == false && inAddOp == false) {
-			assembly << "\tmov\tedi, \tDWORD[_" + currToken + "]\t; move op1 into dest register" << std::endl;
+			if (sc.isIntConst(currToken)) {
+				assembly << "\tmov\tedi, \t" + currToken + "\t; move op1 into dest register" << std::endl;
+			}
+			else {
+				assembly << "\tmov\tedi, \tDWORD[_" + currToken + "]\t; move op1 into dest register" << std::endl;
+			}
 		}
 		else {
 			if ((lastOperand != currToken) && inAddOp == false) {
-				assembly << "\tmov\tesi, \tDWORD[_" + currToken + "]\t; move op1 into dest register" << std::endl;
+				if (sc.isIntConst(currToken)) {
+					assembly << "\tmov\tedi, \t" + currToken + "\t; move op1 into dest register" << std::endl;
+				}
+				else {
+					assembly << "\tmov\tedi, \tDWORD[_" + currToken + "]\t; move op1 into dest register" << std::endl;
+				}
 			}
 		}
 		if (ediInuse == true && inAddOp == true) {
