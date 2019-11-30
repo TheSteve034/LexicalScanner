@@ -24,11 +24,15 @@ public :
 	std::string getuDataHeader();
 	std::string getCodeDataHeader();
 	std::string getExitHeader();
+	std::string getSubRoutineCode();
 
 	std::string addIntVar(std::string varName);
 	std::string addSringVar(std::string varName);
 	std::string addIStringVar(std::string varName, int varNum);
 	std::string integerAssingment(std::string lVal, std::string rVal, int constFlag);
+	std::string stringAssingment(std::string lVal, std::string rVal, int constFlag);
+	std::string moveToEDI(std::string var);
+	std::string multiply(std::string operand);
 	std::string writeCode(std::string var, int numFlag, int varNumFlag, std::string procName, int compCount, bool inProc,std::string currToken);
 	std::string readCode(std::string var, std::string type);
 	std::string generateLable(std::string labelName);

@@ -100,6 +100,7 @@ void parser::createFiles(std::string progName) {
 	//add header data to .asm file. The cg object is the object that generats code
 	assembly << cg.getExportHeader() << std::endl;
 	assembly << cg.getImportHeader() << std::endl;
+	assembly << cg.getSubRoutineCode() << std::endl;
 	assembly << "\nJMP\t_main" << std::endl;
 	//assembly << cg.getiDataHeader() << std::endl;
 	//int compGenVars = 0;
@@ -180,10 +181,11 @@ int parser::programRule() {
 		//add .bss section to asm file
 		assembly << "\n" << std::endl;
 		assembly << cg.getuDataHeader() << std::endl;
+		cg.uVar.push_back(cg.addSringVar("source_ptr"));
+		cg.uVar.push_back(cg.addSringVar("dest_ptr"));
 		for (auto& var : cg.uVar) {
 			assembly << var << std::endl;
 		}
-
 		return 0;
 	}
 }
@@ -1334,21 +1336,28 @@ int parser::assingmentStatmentRule() {
 		}
 	}
 	//check types to make sure assignment is valid.
-	if (isValidAssingmnet() != 0) {
-		error << "SYNTAX ERROR! TYPE MISSMATCH OR SYMBOL UNKNOWN. Failed in assingmentStatmentRule" << std::endl;
-		std::cout << "SYNTAX ERROR, TYPE MISSMATCH BETWEEN " + lValue + " AND " + rValue + " OR ONE OR BOTH VALUES ARE UNKNOWN"<< std::endl;
-		return -1;
-	}
-	else {
-		//pass lValue and rValue to cg object so it can add the code for the assingment.
-		symTable::symbolInfo* lVar = st.getSym(lValue, procCount);
-		if (lVar->storageType == "INT" && sc.isIntConst(rValue)) { //this is here to restrict gode generation to int assingments only since that is all the has been implmented.
-			assembly << cg.integerAssingment(lValue, rValue, 1) << std::endl;
-			resetLandRVars();
+	if (assingmentDone == false) {
+
+		if (isValidAssingmnet() != 0) {
+			error << "SYNTAX ERROR! TYPE MISSMATCH OR SYMBOL UNKNOWN. Failed in assingmentStatmentRule" << std::endl;
+			std::cout << "SYNTAX ERROR, TYPE MISSMATCH BETWEEN " + lValue + " AND " + rValue + " OR ONE OR BOTH VALUES ARE UNKNOWN" << std::endl;
+			return -1;
 		}
-		else if(lVar->storageType == "INT") {
-			assembly << cg.integerAssingment(lValue, rValue, 0) << std::endl;
-			resetLandRVars();
+		else {
+			symTable::symbolInfo* lVar = st.getSym(lValue, procCount);
+			//pass lValue and rValue to cg object so it can add the code for the assingment.
+			if (lVar->storageType == "INT" && sc.isIntConst(rValue)) { //this is here to restrict gode generation to int assingments only since that is all the has been implmented.
+				assembly << cg.integerAssingment(lValue, rValue, 1) << std::endl;
+				resetLandRVars();
+			}
+			else if (lVar->storageType == "INT") {
+				assembly << cg.integerAssingment(lValue, rValue, 0) << std::endl;
+				resetLandRVars();
+			}
+			if (lVar->storageType == "STRING") {
+				assembly << cg.stringAssingment(lValue, rValue, 0) << std::endl;
+				resetLandRVars();
+			}
 		}
 	}
 
@@ -1605,12 +1614,47 @@ int parser::addTermRule() {
 		return 0;
 	}
 	//now test for a term
+	if (inAddOp == false) {
+		addOppLval = tokens[tokenCount - 3];
+		inAddOp = true;
+	}
+	//operation = currToken;
 	getNextToken();
 	if (termRule() != 0) {
 		//some errors
 		return -1;
 	}
 	else {
+		addOppRval = currToken;
+		operation = tokens[tokenCount - 3];
+		if (sc.isIntConst(addOppLval)) {
+			assembly << "\tmov edi,\t" + addOppLval + "\t; move int const into edi" << std::endl;
+			ediInuse = true;
+		}
+		else {
+			assembly << "\tmov edi,\tDWORD[_" + addOppLval + "]\t; move int var into edi" << std::endl;
+			ediInuse = true;
+		}
+		if (sc.isIntConst(addOppRval)) {
+			if (operation == "+") {
+				assembly << "\tadd edi,\t" + addOppRval + "\t;add const to edi"<< std::endl;
+				ediInuse = true;
+			}
+			else if (operation == "-") {
+				assembly << "\tsub edi,\t" + addOppRval + "\t;subtract const to edi" << std::endl;
+				ediInuse = true;
+			}
+		}
+		else {
+			if (operation == "+") {
+				assembly << "\tadd edi,\tDWORD[_" + addOppRval + "]\t;subtract var from edi" << std::endl;
+				ediInuse = true;
+			}
+			else if (operation == "-") {
+				assembly << "\tsub edi,\tDWORD[_" + addOppRval + "]\t;subtract var from edi" << std::endl;
+				ediInuse = true;
+			}
+		}
 		getNextToken();
 		if (addTermRule() != 0) {
 			//some errorsd
@@ -1633,6 +1677,14 @@ int parser::termRule() {
 		if (mulFactorRule() != 0) {
 			error << "SYNTAX ERROR! MALFORMED MUL FACTOR. Failed arser::termRule" << std::endl;
 			return -1;
+		}
+		if (mulFactor == true) {
+			/*assembly << "\tmov\tesi, \tDWORD[_" + currToken + "]\t; move op1 into dest register" << std::endl;
+			assembly << "\timul\tedi,\tesi\t;op1 = op1 * op2" << std::endl;*/
+			assembly << "\tmov\tDWORD[_" + lValue + "],\tedi" << std::endl;
+			mulFactor = false;
+			assingmentDone = true;
+			resetLandRVars();
 		}
 	}
 	//grab rValue;
@@ -1707,11 +1759,31 @@ int parser::factorRule() {
 <mul op>	::=	*   |   /   |   and
 */
 int parser::mulFactorRule() {
+	operation = nextToken;
+	assembly << "\n" << std::endl;
 	if (nextToken != "*" && nextToken != "/" && nextToken != "AND") {
 		//there are no mul ops return 0;
 		return 0;
 	}
 	else {
+		mulFactor = true;
+		if (ediInuse == false && inAddOp == false) {
+			assembly << "\tmov\tedi, \tDWORD[_" + currToken + "]\t; move op1 into dest register" << std::endl;
+		}
+		else {
+			if ((lastOperand != currToken) && inAddOp == false) {
+				assembly << "\tmov\tesi, \tDWORD[_" + currToken + "]\t; move op1 into dest register" << std::endl;
+			}
+		}
+		if (ediInuse == true && inAddOp == true) {
+			if (sc.isIntConst(currToken)) {
+				assembly << "\tmove esi,\t" + currToken << std::endl;
+			}
+			else {
+				assembly << "\tmov\tesi, \tDWORD[_" + currToken + "]" << std::endl;
+			}
+		}
+
 		getNextToken();
 		getNextToken();
 		if (factorRule() != 0) {
@@ -1719,12 +1791,25 @@ int parser::mulFactorRule() {
 			return -1;
 		}
 		else {
+			if (operation == "*") {
+				if (ediInuse == false && lastOperand != currToken) {
+					assembly << "\timul\tedi,\tDWORD[_" + currToken + "]\t;op1 = op1 * op2" << std::endl;
+					ediInuse = true;
+				}
+				else {
+					if (lastOperand != currToken) {
+						assembly << "\timul\tedi,\tDWORD[_" + currToken + "]\t;op1 = op1 * op2" << std::endl;
+					}
+				}
+				lastOperand = currToken;
+			}
 			if (mulFactorRule() != 0) {
 				error << "SYNTAX ERROR! MALFORMED MUL OP. Failed in parser::mulFactorRule" << std::endl;
 				return -1;
 			}
 		}
 	}
+	//there are no more mulFactors now assign the value of EDI to lVar
 	return 0;
 }
 
