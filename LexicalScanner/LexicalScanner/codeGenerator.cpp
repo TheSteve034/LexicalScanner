@@ -156,6 +156,7 @@ std::string codeGen::readCode(std::string var, std::string type) {
 		line += "\n\tcall\t_scanf\t;call to scanf";
 		line += "\n\tadd\tesp, 0x8\t;clear the stack";
 	}
+	line += "\n";
 	return line;
 }
 
