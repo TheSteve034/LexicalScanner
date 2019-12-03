@@ -33,6 +33,7 @@ private:
 	bool inWriteRule = false;
 	bool inParens = false;
 	bool assingmentDone = false;
+	bool checkedOnce = false;
 	int procCount = 0;
 	std::string lastOperand = "";
 	std::string operation = "";

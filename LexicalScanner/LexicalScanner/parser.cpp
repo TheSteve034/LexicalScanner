@@ -1674,7 +1674,9 @@ int parser::simpleExpressionRule() {
 			std::string localLAddOp = currToken;
 			std::string localOp = nextToken;
 			if (inAddOp == false && mulFactor == false && inWriteRule == false) {
-				assingment.push_back(currToken);
+				if (currToken != ")") {
+					assingment.push_back(currToken);
+				}
 				assingment.push_back(nextToken);
 			}
 		//check for an add term
@@ -1690,47 +1692,181 @@ int parser::simpleExpressionRule() {
 			localOp is the operation
 			rValue is the rvalue
 			*/
-			bool isLConst = sc.isIntConst(localLAddOp);
-			bool isRConst = sc.isIntConst(rValue);
-			bool isRanID = sc.isId(rValue);
-			if (isRanID == false && isRConst == false) {
-				while (true);
-			}
-			if (localOp == "+") {
-				if (isLConst) {
-					assembly << "\n\tadd edi,\t" + lAddOp + "\t;adding a constant" << std::endl;
-				}
-				else {
-					assembly << "\n\tadd edi,\tDWORD[_" + lAddOp + "]\t;adding a variable" << std::endl;
-				}
-			}
-			if (localOp == "-") {
-				if (isLConst) {
-					assembly << "\n\tmov\tedi,\t" + localLAddOp + "\t;move lval into edi" << std::endl;
-					if (isRConst) {
-						assembly << "\n\tsub\tedi,\t" + rValue + "\t;subtract ravl from edi" << std::endl;
+			//Need to be able to handle the case where localAddOp = )
+			bool complexAssingment = false;
+			if (localLAddOp == ")") {
+				//if this is the case then we know that at least the lValue of this add op is in assembly
+				//we now want to check to see what is in assembly to determine what the add op should do.
+				//case 1 last item it assembly is a temp var
+				int lenght = assingment.size();
+				std::string test = assingment[lenght - 1].substr(0, 1);
+				if (test == "_") {
+					//we know that both lval and rvals are temp vars
+					if (localOp == "-") {
+						assembly << "\n\tmov\tedi,\tDWORD["+ assingment[lenght-3] +"]\t;move temp var into edi" << std::endl;
+						assembly << "\n\tsub\tedi,\tDWORD[" + assingment[lenght - 1] + "]\t;sub temp var from edi" << std::endl;
+						complexAssingment = true;
+						assingment.pop_back();
+						assingment.pop_back();
+						assingment.pop_back();
 					}
-					else {
-						assembly << "\n\tsub\tedi,\tDWORD[_" + rValue + "]\t;subtract ravl from edi" << std::endl;
+					if (localOp == "+") {
+						assembly << "\n\tmov\tedi,\tDWORD[" + assingment[lenght - 3] + "]\t;move temp var into edi" << std::endl;
+						assembly << "\n\tadd\tedi,\t" + assingment[lenght - 1] + "\t;sub temp var from edi" << std::endl;
+						complexAssingment = true;
+						assingment.pop_back();
+						assingment.pop_back();
+						assingment.pop_back();
 					}
 				}
-				else {
-					assembly << "\n\tsub edi,\tDWORD[_" + lAddOp + "]\t;adding a variable" << std::endl;
-				}
 			}
-			if (localOp == "*") {
-				if (isLConst) {
-					assembly << "\n\timul edi,\t" + lAddOp + "\t;adding a constant" << std::endl;
+			if (complexAssingment == false) {
+				bool allDone = false;
+				if (assingment.size() > 2) {
+					//if this is the case then assingment holds several operations and we need to process the assembly differently
+					for (int i = 0; i < assingment.size(); ++i) {
+						if (sc.isId(assingment[i])) {
+							assembly << "\n\tmov\tedi,\tDWORD[_" + assingment[i] + "]\t;move var into edi" << std::endl;
+						}
+						if (sc.isIntConst(assingment[i])) {
+							assembly << "\n\tmov\tedi,\t" + assingment[i] + "\t;move var into edi" << std::endl;
+						}
+						if (assingment[i] == "+") {
+							if (sc.isId(assingment[i + 1])) {
+								assembly << "\n\tadd\tedi,\tDWORD[_" + assingment[i + 1] + "]\t;add var to edi" << std::endl;
+								++i;
+								continue;
+							}
+							if (sc.isIntConst(assingment[i + 1])) {
+								assembly << "\n\tadd\tedi,\t" + assingment[i + 1] + "\t;add var to edi" << std::endl;
+								++i;
+								continue;
+							}
+							std::string test = assingment[i + 1].substr(0, 1);
+							if (test == "_") {
+								assembly << "\n\tadd\tedi,\tDWORD[" + assingment[i + 1] + "]\t;add var to edi" << std::endl;
+								++i;
+								continue;
+							}
+						}
+						if (assingment[i] == "-") {
+							if (sc.isId(assingment[i + 1])) {
+								assembly << "\n\tsub\tedi,\tDWORD[_" + assingment[i + 1] + "]\t;add var to edi" << std::endl;
+								++i;
+								continue;
+							}
+							if (sc.isIntConst(assingment[i + 1])) {
+								assembly << "\n\tsub\tedi,\t" + assingment[i + 1] + "\t;add var to edi" << std::endl;
+								++i;
+								continue;
+							}
+							std::string test = assingment[i + 1].substr(0, 1);
+							if (test == "_") {
+								assembly << "\n\tsub\tedi,\tDWORD[" + assingment[i + 1] + "]\t;add var to edi" << std::endl;
+								++i;
+								continue;
+							}
+						}
+						if (assingment[i] == "*") {
+							if (sc.isId(assingment[i + 1])) {
+								assembly << "\n\timul\tedi,\tDWORD[_" + assingment[i + 1] + "]\t;add var to edi" << std::endl;
+								++i;
+								continue;
+							}
+							if (sc.isIntConst(assingment[i + 1])) {
+								assembly << "\n\timul\tedi,\t" + assingment[i + 1] + "\t;add var to edi" << std::endl;
+								++i;
+								continue;
+							}
+							std::string test = assingment[i + 1].substr(0, 1);
+							if (test == "_") {
+								assembly << "\n\timul\tedi,\tDWORD[" + assingment[i + 1] + "]\t;add var to edi" << std::endl;
+								++i;
+								continue;
+							}
+						}
+						if (assingment[i] == "/") {
+							if (sc.isId(assingment[i + 1])) {
+								assembly << "\n\tdiv\tedi,\tDWORD[_" + assingment[i + 1] + "]\t;add var to edi" << std::endl;
+								++i;
+								continue;
+							}
+							if (sc.isIntConst(assingment[i + 1])) {
+								assembly << "\n\tdiv\tedi,\t" + assingment[i + 1] + "\t;add var to edi" << std::endl;
+								++i;
+								continue;
+							}
+							std::string test = assingment[i + 1].substr(0, 1);
+							if (test == "_") {
+								assembly << "\n\tdiv\tedi,\tDWORD[" + assingment[i + 1] + "]\t;add var to edi" << std::endl;
+								++i;
+								continue;
+							}
+						}
+						std::string test1 = assingment[i].substr(0, 1);
+						if (test1 == "_") {
+							assembly << "\n\tmov\tedi,\tDWORD[" + assingment[i] + "]\t;move var into edi" << std::endl;
+						}
+					}
+					//now that we have processed everything in assingment it needst to be emptied so that we can store another temp var that holds the rsult stored in edi
+					assingment.clear();
+					allDone = true;
 				}
-				else {
-					assembly << "\n\timul edi,\tDWORD[_" + lAddOp + "]\t;adding a variable" << std::endl;
-				};
+				if (allDone == false) {
+					bool isLConst = sc.isIntConst(localLAddOp);
+					bool isRConst = sc.isIntConst(rValue);
+					bool isRanID = sc.isId(rValue);
+					if (localOp == "+") {
+						if (isLConst) {
+							assembly << "\n\tadd edi,\t" + lAddOp + "\t;adding a constant" << std::endl;
+						}
+						else {
+							assembly << "\n\tadd edi,\tDWORD[_" + lAddOp + "]\t;adding a variable" << std::endl;
+						}
+					}
+					if (localOp == "-") {
+						if (isLConst) {
+							assembly << "\n\tmov\tedi,\t" + localLAddOp + "\t;move lval into edi" << std::endl;
+							if (isRConst) {
+								assembly << "\n\tsub\tedi,\t" + rValue + "\t;subtract ravl from edi" << std::endl;
+							}
+							else {
+								assembly << "\n\tsub\tedi,\tDWORD[_" + rValue + "]\t;subtract ravl from edi" << std::endl;
+							}
+						}
+						else {
+							assembly << "\n\tsub edi,\tDWORD[_" + lAddOp + "]\t;adding a variable" << std::endl;
+						}
+					}
+					if (localOp == "*") {
+						if (isLConst) {
+							assembly << "\n\timul edi,\t" + lAddOp + "\t;adding a constant" << std::endl;
+						}
+						else {
+							assembly << "\n\timul edi,\tDWORD[_" + lAddOp + "]\t;adding a variable" << std::endl;
+						};
+					}
+				}
 			}
 			//create a temporary var to hold result of calculation.
 			cg.uVar.push_back("\t_" +std::to_string(varGenCount) + "P" + "_int\t\tresd\t1\t;temp int var");
 			assembly << "\n\tmov DWORD[_" + std::to_string(varGenCount) + "P" + "_int],\tedi\t; move edi into temp var" << std::endl;
 			lAddOp = "";
-			assingment.push_back("_" + std::to_string(varGenCount) + "P" + "_int");
+			if (inParens == true) {
+				//we first need to check if the l and r vals are in the assingment vector if they are then the need to be removed, other wise assingment
+				//shouldnt be touched.
+				int aSize = assingment.size();
+				if (assingment[aSize - 1] != "+" || assingment[aSize - 1] != "-") {
+					assingment.pop_back();
+					assingment.pop_back();
+				}
+				//assingment hold the other items in parens so we need to work backwards to remove them.
+				//we juste remove localOp and LocalLval since we know for sure that they have been consumed.
+				assingment.push_back("_" + std::to_string(varGenCount) + "P" + "_int");
+			}
+			else {
+				assingment.push_back("_" + std::to_string(varGenCount) + "P" + "_int");
+			}
 			++varGenCount;
 			++varGenLocalCount;
 			inAddOp = false;
@@ -1890,9 +2026,12 @@ int parser::termRule() {
 				}
 			}
 			//now we hold the result of the multiplication inside of a a temp var
+			//we are all done with the values so we empty the vector in anticipation of future mul facto operations.
+			mulFactorCalc.clear();
 			cg.uVar.push_back("\t_" + std::to_string(varGenCount) + "P" + "_int\t\tresd\t1\t;temp int var");
 			assembly << "\n\tmov DWORD[_" + std::to_string(varGenCount) + "P" + "_int],\tedi\t; move edi into temp var" << std::endl;
 			assingment.push_back("_" + std::to_string(varGenCount) + "P" + "_int");
+			checkedOnce = false;
 			++varGenCount;
 			++varGenLocalCount;
 
@@ -1984,6 +2123,14 @@ int parser::mulFactorRule() {
 	}
 	else {
 		mulFactor = true;
+		//check to see if there is an operation that needs to be given to assingment here
+		if (inAddOp == true && checkedOnce == false) {
+			int size = assingment.size();
+			if (assingment[size - 1] != tokens[tokenCount - 3]) {
+				assingment.push_back(tokens[tokenCount - 3]);
+			}
+			checkedOnce = true;
+		}
 		if (lastOperand != currToken) {
 			mulFactorCalc.push_back(currToken);
 		}
