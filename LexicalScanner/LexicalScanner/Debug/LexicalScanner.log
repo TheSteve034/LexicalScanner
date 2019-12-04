@@ -1,21 +1,21 @@
 ﻿C:\Program Files (x86)\Microsoft Visual Studio\2019\Preview\MSBuild\Microsoft\VC\v160\Microsoft.CppBuild.targets(452,5): warning MSB8028: The intermediate directory (Debug\) contains files shared from another project (Complier.vcxproj, LexicalScanner.vcxproj).  This can lead to incorrect clean and rebuild behavior.
   parser.cpp
-C:\Users\swree\source\repos\LexicalScanner\LexicalScanner\LexicalScanner\parser.cpp(203,16) : warning C4129: ' ': unrecognized character escape sequence
-C:\Users\swree\source\repos\LexicalScanner\LexicalScanner\LexicalScanner\parser.cpp(1366,21) : warning C4018: '<': signed/unsigned mismatch
-C:\Users\swree\source\repos\LexicalScanner\LexicalScanner\LexicalScanner\parser.cpp(1727,24) : warning C4018: '<': signed/unsigned mismatch
-C:\Users\swree\source\repos\LexicalScanner\LexicalScanner\LexicalScanner\parser.cpp(1976,22) : warning C4018: '<': signed/unsigned mismatch
-C:\Users\swree\source\repos\LexicalScanner\LexicalScanner\LexicalScanner\parser.cpp(191)  : warning C4715: 'parser::programRule': not all control paths return a value
-C:\Users\swree\source\repos\LexicalScanner\LexicalScanner\LexicalScanner\parser.cpp(354)  : warning C4715: 'parser::moreDeclsRule': not all control paths return a value
-C:\Users\swree\source\repos\LexicalScanner\LexicalScanner\LexicalScanner\parser.cpp(415)  : warning C4715: 'parser::arrayDefRule': not all control paths return a value
-C:\Users\swree\source\repos\LexicalScanner\LexicalScanner\LexicalScanner\parser.cpp(518)  : warning C4715: 'parser::indexRangeRule': not all control paths return a value
-C:\Users\swree\source\repos\LexicalScanner\LexicalScanner\LexicalScanner\parser.cpp(690)  : warning C4715: 'parser::paramListsRule': not all control paths return a value
-C:\Users\swree\source\repos\LexicalScanner\LexicalScanner\LexicalScanner\parser.cpp(872)  : warning C4715: 'parser::moreStatmentsRule': not all control paths return a value
-C:\Users\swree\source\repos\LexicalScanner\LexicalScanner\LexicalScanner\parser.cpp(947)  : warning C4715: 'parser::structuredStatmentRule': not all control paths return a value
-C:\Users\swree\source\repos\LexicalScanner\LexicalScanner\LexicalScanner\parser.cpp(1056)  : warning C4715: 'parser::casePartRule': not all control paths return a value
-C:\Users\swree\source\repos\LexicalScanner\LexicalScanner\LexicalScanner\parser.cpp(1148)  : warning C4715: 'parser::whileStatmentRule': not all control paths return a value
-C:\Users\swree\source\repos\LexicalScanner\LexicalScanner\LexicalScanner\parser.cpp(1190)  : warning C4715: 'parser::simpleStatmentRule': not all control paths return a value
-C:\Users\swree\source\repos\LexicalScanner\LexicalScanner\LexicalScanner\parser.cpp(1530)  : warning C4715: 'parser::moreArgListRule': not all control paths return a value
-C:\Users\swree\source\repos\LexicalScanner\LexicalScanner\LexicalScanner\parser.cpp(1619)  : warning C4715: 'parser::arrayIdxRule': not all control paths return a value
-C:\Users\swree\source\repos\LexicalScanner\LexicalScanner\LexicalScanner\parser.cpp(1657)  : warning C4715: 'parser::relExpressionRule': not all control paths return a value
-C:\Users\swree\source\repos\LexicalScanner\LexicalScanner\LexicalScanner\parser.cpp(1955)  : warning C4715: 'parser::addTermRule': not all control paths return a value
+C:\Users\swree\source\repos\LexicalScanner\LexicalScanner\LexicalScanner\parser.cpp(190,16) : warning C4129: ' ': unrecognized character escape sequence
+C:\Users\swree\source\repos\LexicalScanner\LexicalScanner\LexicalScanner\parser.cpp(1359,21) : warning C4018: '<': signed/unsigned mismatch
+C:\Users\swree\source\repos\LexicalScanner\LexicalScanner\LexicalScanner\parser.cpp(1720,24) : warning C4018: '<': signed/unsigned mismatch
+C:\Users\swree\source\repos\LexicalScanner\LexicalScanner\LexicalScanner\parser.cpp(1969,22) : warning C4018: '<': signed/unsigned mismatch
+C:\Users\swree\source\repos\LexicalScanner\LexicalScanner\LexicalScanner\parser.cpp(178)  : warning C4715: 'parser::programRule': not all control paths return a value
+C:\Users\swree\source\repos\LexicalScanner\LexicalScanner\LexicalScanner\parser.cpp(341)  : warning C4715: 'parser::moreDeclsRule': not all control paths return a value
+C:\Users\swree\source\repos\LexicalScanner\LexicalScanner\LexicalScanner\parser.cpp(402)  : warning C4715: 'parser::arrayDefRule': not all control paths return a value
+C:\Users\swree\source\repos\LexicalScanner\LexicalScanner\LexicalScanner\parser.cpp(505)  : warning C4715: 'parser::indexRangeRule': not all control paths return a value
+C:\Users\swree\source\repos\LexicalScanner\LexicalScanner\LexicalScanner\parser.cpp(677)  : warning C4715: 'parser::paramListsRule': not all control paths return a value
+C:\Users\swree\source\repos\LexicalScanner\LexicalScanner\LexicalScanner\parser.cpp(859)  : warning C4715: 'parser::moreStatmentsRule': not all control paths return a value
+C:\Users\swree\source\repos\LexicalScanner\LexicalScanner\LexicalScanner\parser.cpp(934)  : warning C4715: 'parser::structuredStatmentRule': not all control paths return a value
+C:\Users\swree\source\repos\LexicalScanner\LexicalScanner\LexicalScanner\parser.cpp(1043)  : warning C4715: 'parser::casePartRule': not all control paths return a value
+C:\Users\swree\source\repos\LexicalScanner\LexicalScanner\LexicalScanner\parser.cpp(1135)  : warning C4715: 'parser::whileStatmentRule': not all control paths return a value
+C:\Users\swree\source\repos\LexicalScanner\LexicalScanner\LexicalScanner\parser.cpp(1177)  : warning C4715: 'parser::simpleStatmentRule': not all control paths return a value
+C:\Users\swree\source\repos\LexicalScanner\LexicalScanner\LexicalScanner\parser.cpp(1523)  : warning C4715: 'parser::moreArgListRule': not all control paths return a value
+C:\Users\swree\source\repos\LexicalScanner\LexicalScanner\LexicalScanner\parser.cpp(1612)  : warning C4715: 'parser::arrayIdxRule': not all control paths return a value
+C:\Users\swree\source\repos\LexicalScanner\LexicalScanner\LexicalScanner\parser.cpp(1650)  : warning C4715: 'parser::relExpressionRule': not all control paths return a value
+C:\Users\swree\source\repos\LexicalScanner\LexicalScanner\LexicalScanner\parser.cpp(1948)  : warning C4715: 'parser::addTermRule': not all control paths return a value
   LexicalScanner.vcxproj -> C:\Users\swree\source\repos\LexicalScanner\LexicalScanner\Debug\Compiler.exe

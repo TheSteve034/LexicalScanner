@@ -70,10 +70,18 @@ string
 std::string codeGen::stringAssingment(std::string lVal, std::string rVal, int constFlag) {
 	std::string line = "";
 	if (constFlag == 0) {
-		line = "\n\tmov\tedi,\t_" + lVal + ";move destination strint into edi";
-		line += "\n\tmov\tesi,\t_" + rVal + ";move srouce string into esi";
+		line = "\n\tpush\t_" + lVal + "\t;push destination string into edi";
+		line += "\n\tpush\t_" + rVal + "\t;push destination string into edi";
+		//line = "\n\tmov\tedi,\t_" + lVal + ";move destination strint into edi";
+		//line += "\n\tmov\tesi,\t_" + rVal + ";move srouce string into esi";
 		line += "\n\tcall\t_strcpy";
-		line += "\n\tcall\t_cpyloop";
+	}
+	if (constFlag != 0) {
+		line = "\n\tpush\t_" + lVal + "\t;push destination string into edi";
+		iVar.push_back("\t_" + std::to_string(compGenVarCount) + "_string" + "_\t\tdb\t\"" + rVal + "\",0\t;this is a string var that is not decalred in the var block");
+		line += "\n\tpush\t_" + std::to_string(compGenVarCount) + "_string" + "_\t;push destination string into edi";
+		++compGenVarCount;
+		line += "\n\tcall\t_strcpy";
 	}
 	return line;
 }
@@ -174,17 +182,18 @@ This method is used to generate all the assembly code needed to define any routi
 std::string codeGen::getSubRoutineCode() {
 	std::string line = "";
 	//this section adds the needed code for string copies
-	line += "_strcpy:\n\tpush eax  ;register used for transfer";
+	line += "_strcpy:";
+	line += "\n\tpush eax; register used for transfer";
 	line += "\n\tpush esi  ; register used as pointer for source";
 	line += "\n\tpush edi  ; register used as pointer for destination";
 	line += "\n\tpush ecx  ; used for counting chars";
-	line += "\n\tmov\tesi, _source_ptr";
-	line += "\n\tmov\tedi, _dest_ptr";
-	line += "\n\tmov\tecx, 128";
-	line += "\n\tret";
+	line += "\n\tmov\tesi, DWORD[esp+20]";
+	line += "\n\tmov\tedi, DWORD[esp+24]";
+	line += "\n\tmov\tecx, 0";
+
 	line += "\n_cpyloop:\n";
-	line += "\tmov\tal, [esi]  ;load a byte from source adderess into al";
-	line += "\n\tmov [edi],  al  ;save in the destination";
+	line += "\tmov\tal, BYTE[esi]  ;load a byte from source adderess into al";
+	line += "\n\tmov BYTE[edi],  al  ;save in the destination";
 	line += "\n\tinc\t ecx";
 	line += "\n\tcmp\tecx,\t128";
 	line += "\n\tje\t_mklastnull";
@@ -193,9 +202,11 @@ std::string codeGen::getSubRoutineCode() {
 	line += "\n\tinc\tesi";
 	line += "\n\tinc\tedi";
 	line += "\n\tjmp _cpyloop";
+
 	line += "\n_mklastnull:";
 	line += "\n\tmov byte [edi],\t0";
 	line += "\n\tret";
+
 	line += "\n_cpydone:";
 	line += "\n\tpop\tecx";
 	line += "\n\tpop\tedi";

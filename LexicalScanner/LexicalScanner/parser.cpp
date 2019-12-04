@@ -100,21 +100,8 @@ void parser::createFiles(std::string progName) {
 	//add header data to .asm file. The cg object is the object that generats code
 	assembly << cg.getExportHeader() << std::endl;
 	assembly << cg.getImportHeader() << std::endl;
-	assembly << cg.getSubRoutineCode() << std::endl;
 	assembly << "\nJMP\t_main" << std::endl;
-	//assembly << cg.getiDataHeader() << std::endl;
-	//int compGenVars = 0;
-	//check for any string constants declared in the begin blocks
-	//for (int i = 0; i < tokens.size(); i++) {
-	//	if (tokens[i] == "\"") {
-	//		std::string var = tokens[i + 1];
-	//		i = i + 2;
-	//		//add string var to idata set
-	//		assembly << cg.addIStringVar(var, compGenVars) << std::endl;
-	//		compGenVars++;
-	//	}
-	//}
-	//assembly << "\n" + cg.getuDataHeader() << std::endl;
+	assembly << cg.getSubRoutineCode() << std::endl;
 }
 
 /*
@@ -1357,8 +1344,14 @@ int parser::assingmentStatmentRule() {
 				resetLandRVars();
 			}
 			if (lVar->storageType == "STRING") {
-				assembly << cg.stringAssingment(lValue, rValue, 0) << std::endl;
-				resetLandRVars();
+				if (rValue == "\"") {
+					assembly << cg.stringAssingment(lValue, tokens[tokenCount-4], 1) << std::endl;
+					resetLandRVars();
+				}
+				else {
+					assembly << cg.stringAssingment(lValue, rValue, 0) << std::endl;
+					resetLandRVars();
+				}
 			}
 		}
 	}
@@ -2031,7 +2024,8 @@ int parser::termRule() {
 			cg.uVar.push_back("\t_" + std::to_string(varGenCount) + "P" + "_int\t\tresd\t1\t;temp int var");
 			assembly << "\n\tmov DWORD[_" + std::to_string(varGenCount) + "P" + "_int],\tedi\t; move edi into temp var" << std::endl;
 			assingment.push_back("_" + std::to_string(varGenCount) + "P" + "_int");
-			checkedOnce = false;
+			checkedOnce = false; 
+
 			++varGenCount;
 			++varGenLocalCount;
 
