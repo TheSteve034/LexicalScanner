@@ -320,7 +320,7 @@ void symTable::printSymTable() {
 		}
 		while (temp != NULL) {
 			std::cout << "Symbol Name: " + temp->name << std::endl;
-			std::cout << "Symbol Scope: " + temp->scope << std::endl;
+			std::cout << "Symbol Scope: " + std::to_string(temp->scope) << std::endl;
 			std::cout << "Symbol Storage Type: " + temp->storageType << std::endl;
 			std::cout << "Symbol Base Type: " + temp->baseType << std::endl;
 			if (temp->storageType == "array") {
